@@ -4,7 +4,6 @@ contract ReuseRegistry {
         string abi;
     }
 
-    // TODO: Need to write an accessor for this, so we can list all libs
     bytes32[] public names;
     mapping (bytes32 => ReuseData) public data; 
     
@@ -19,5 +18,9 @@ contract ReuseRegistry {
         if (data[name].a == 0) return;
         ReuseData d = data[name];
         return (d.a, d.abi);
+    }
+
+    function list() constant returns (bytes32[]) {
+        return names;
     }
 }
