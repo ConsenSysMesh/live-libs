@@ -10,9 +10,8 @@ web3.eth.defaultAccount = web3.eth.coinbase;
 
 var sourcePath = process.argv[2];
 var contractName = process.argv[3];
-var liveLibsName = process.argv[4];
 
-console.log("Registering "+contractName+" as "+liveLibsName+" from "+sourcePath+"...");
+console.log("Registering "+contractName+" from "+sourcePath+"...");
 
 var source = fs.readFileSync(sourcePath, 'utf8');
 var compiled = web3.eth.compile.solidity(source);
@@ -29,20 +28,20 @@ contract.new({data: code, gas: gasEstimate}, function (err, contract) {
         console.error(err);
         return;
     } else if(contract.address){
-        console.log(liveLibsName+' abi: \n' + JSON.stringify(contract.abi));
-        console.log(liveLibsName+' address: \n' + contract.address);
+        console.log(contractName+' abi: \n' + JSON.stringify(contract.abi));
+        console.log(contractName+' address: \n' + contract.address);
 
-        registerMyself(liveLibsName, contract);
+        registerMyself(contractName, contract);
     } else {
         console.log(contractName+' transmitted, waiting for mining...');
     }
 });
 
-function registerMyself(liveLibsName, contract) {
-    var txHash = liveLibsContract().register(liveLibsName, contract.address, JSON.stringify(contract.abi), {value: 0, gas: 1000000});
+function registerMyself(contractName, contract) {
+    var txHash = liveLibsContract().register(contractName, contract.address, JSON.stringify(contract.abi), {value: 0, gas: 1000000});
 
     setInterval(function() {
-      console.log('Waiting for '+liveLibsName+' to be registered...');
+      console.log('Waiting for '+contractName+' to be registered...');
 
       web3.eth.getTransactionReceipt(txHash, function(err, result) {
         if (err) {

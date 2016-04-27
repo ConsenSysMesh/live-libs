@@ -9,8 +9,8 @@ web3.eth.defaultAccount = web3.eth.coinbase;
 var source = fs.readFileSync('./contracts.sol', 'utf8');
 
 var compiled = web3.eth.compile.solidity(source);
-var code = compiled.ReuseRegistry.code;
-var abi = compiled.ReuseRegistry.info.abiDefinition;
+var code = compiled.LiveLibs.code;
+var abi = compiled.LiveLibs.info.abiDefinition;
 
 var contract = web3.eth.contract(abi);
 
@@ -22,17 +22,17 @@ web3.eth.contract(abi).new({data: code, gas: gasEstimate}, function (err, contra
         console.error(err);
         return;
     } else if(contract.address){
-        console.log('ReuseRegistry abi: \n' + JSON.stringify(contract.abi));
-        console.log('ReuseRegistry address: \n' + contract.address);
+        console.log('LiveLibs abi: \n' + JSON.stringify(contract.abi));
+        console.log('LiveLibs address: \n' + contract.address);
 
         registerMyself(contract);
     } else {
-        console.log('ReuseRegistry transmitted, waiting for mining...');
+        console.log('LiveLibs transmitted, waiting for mining...');
     }
 });
 
 function registerMyself(contract) {
-    var txHash = contract.register("live-libs", contract.address, JSON.stringify(contract.abi), {value: 0, gas: 1000000});
+    var txHash = contract.register("LiveLibs", contract.address, JSON.stringify(contract.abi), {value: 0, gas: 1000000});
 
     setInterval(function() {
       console.log("Waiting for tx ("+txHash+") to clear...");
