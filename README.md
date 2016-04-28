@@ -26,6 +26,11 @@ __Warning:__ There is no way to update or remove your library. Once it's live it
 
 __Warning:__ This software is under active development and the Live Libs registry will be replaced without warning. (Other than this warning.)
 
+## TODO
+
+* Also provide an installer that generates the abstract libs so developers can use normal import statements.
+* Consider multiple environments, as well as how to test against these libraries.
+
 ## Author
 
 Dave Hoover <dave.hoover@consensys.net>

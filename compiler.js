@@ -1,4 +1,5 @@
 var liveLibsContract = require('./lib/live-libs');
+var generateAbstractLib = require('./lib/live-libs/abstract');
 
 var fs = require('fs');
 
@@ -34,32 +35,11 @@ function parseLiveLibData(source) {
 function generateAbstractLibs(libData) {
   var source = "";
   Object.keys(libData).forEach(function(libName) {
-    var abi = JSON.parse(libData[libName].abi);
-
-    var libSource = 'library '+libName+' { ';
-    abi.forEach(function(func) {
-      if (func.type != 'function') return
-      var inputs = [];
-      func.inputs.forEach(function(input) {
-        inputs.push(input.type+' '+input.name);
-      });
-      var constant = '';
-      if (func.constant) constant = ' constant';
-      var returns = '';
-      if (func.outputs.length > 0) {
-        var outputs = [];
-        func.outputs.forEach(function(output) {
-          outputs.push(output.type+' '+output.name);
-        });
-        returns = ' returns ('+outputs.join(',')+')';
-      }
-      libSource += 'function '+func.name+'('+inputs.join(',')+')'+constant+returns+';';
-    });
-    libSource += ' }';
-    source += libSource;
+    source += generateAbstractLib(libName, libData[libName].abi);
   });
   return source;
 }
+
 
 function linkBytecodeToLibs(compiled, libData) {
   Object.keys(compiled).forEach(function(contractName) {
