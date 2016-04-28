@@ -28,6 +28,7 @@ __Warning:__ This software is under active development and the Live Libs registr
 
 ## TODO
 
+* Review [@tcoulter's code](https://gist.github.com/tcoulter/5ac2a569f3b58614a44753939d7b1eae) for generating code from an ABI.
 * Need a linking solution for when we use the installer approach.
 * Consider multiple environments, as well as how to test against these libraries.
 
