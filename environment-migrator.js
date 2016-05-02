@@ -15,7 +15,7 @@ function download() {
     var plainName = web3.toAscii(rawName).replace(/\0/g, '');
     console.log("Pulling " + plainName);
     var libData = liveLibs.data(plainName);
-    console.log(web3.eth.getCode(libData[0]));
+    // console.log(web3.eth.getCode(libData[0]));
     dataToStore[plainName] = {
       address: libData[0],
       abi: JSON.parse(libData[1]),
@@ -35,22 +35,25 @@ function upload() {
   var jsonData = JSON.parse(data);
   Object.keys(jsonData).forEach(function(libName) {
     console.log("Deploying "+libName);
-    // WIP: need to learn how to deploy bytecode directly
-    // deployLibCode(libName, jsonData[libName], registerLib);
+    deployLibCode(libName, jsonData[libName], registerLib);
   });
 }
 
 function deployLibCode(libName, contractInfo, callback) {
   var contract = web3.eth.contract(contractInfo.abi);
+  // via https://gitter.im/ethereum/solidity?at=57278b37944fc7ba04cc53a3
+  var constructorByteCode = "606060405260138038038082600039806000f3";
+  var code = '0x' + constructorByteCode + contractInfo.code.replace(/^0x/, '');
 
-  contract.new({data: contractInfo.code, gas: 2000000}, function (err, contract) {
+  contract.new({data: code, gas: 2000000}, function (err, contract) {
     if (err) {
-        console.error(libName+' error: '+err);
-        return;
+      console.error(libName+' error: '+err);
+      return;
     } else if(contract.address) {
-        callback(libName, contract);
+      console.log(libName+' deployed to '+contract.address);
+      callback(libName, contract);
     } else {
-        console.log(libName+' transmitted, waiting for mining...');
+      console.log(libName+' transmitted, waiting for mining...');
     }
   });  
 }
