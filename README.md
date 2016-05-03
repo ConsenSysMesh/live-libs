@@ -30,7 +30,8 @@ __Warning:__ This software is under active development and the Live Libs registr
 
 ## TODO
 
-* Override `import` so that we don't have to use the `// live-libs: ` approach
+* Experiment with truffle integration
+* Rework the system into one or more command line apps
 * Improve multiple environment support, especially: how to test against these libraries using ethereumjs/testrpc.
 * Extract environment migrator into its own repo /via @tcoulter
 * Consider the tradeoffs of allowing for library upgrades, or whether we should have versions (or both)
