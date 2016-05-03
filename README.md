@@ -4,9 +4,9 @@ Providing resusable Solidity libraries that are live on the Ethereum blockchain.
 
 ## How to use a live library
 
-At the top of your solidity file you can "import" live libs in a comment:
+You import live libs with the `.live` extension in your imports:
 
-    // live-libs: Math, Money
+    import "Math.live";
 
 Then, you can feel free to use those libs in your source, such as:
 
@@ -14,13 +14,15 @@ Then, you can feel free to use those libs in your source, such as:
       x = Math.modExp(x, y, 3);
     }
 
-Live Libs will link the library and your contract will compile.
+Live Libs will link the library and your contract will compile when you run:
+
+    $ node compiler.js path/to/source.sol testnet
 
 ## How to register a live library
 
 Using node.js, call the register.js script:
 
-    $ node register.js path/to/source.sol YourLibraryName
+    $ node register.js path/to/source.sol YourLibraryName testnet
 
 __Warning:__ There is no way to update or remove your library. Once it's live it's live forever.
 
