@@ -1,4 +1,4 @@
-// live-libs: Math
+import "Math.live";
 
 contract simple {
     uint public x;

@@ -31,6 +31,7 @@ __Warning:__ This software is under active development and the Live Libs registr
 * Override `import` so that we don't have to use the `// live-libs: ` approach
 * Improve multiple environment support, especially: how to test against these libraries using ethereumjs/testrpc.
 * Extract environment migrator into its own repo /via @tcoulter
+* Consider the tradeoffs of allowing for library upgrades, or whether we should have versions (or both)
 
 ## Author
 
