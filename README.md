@@ -30,7 +30,10 @@ __Warning:__ This software is under active development and the Live Libs registr
 
 ## TODO
 
+* "provide a way to get library information via a Javascript interface" @tcoulter
+* Consider shelling out to `solc` on the command line, generate the abstract libs on the file system, providing the path like [this](https://solidity.readthedocs.io/en/latest/layout-of-source-files.html#use-in-actual-compilers).
 * Experiment with truffle integration
+* Experiment with dapple integration
 * Rework the system into one or more command line apps
 * Improve multiple environment support, especially: how to test against these libraries using ethereumjs/testrpc.
 * Extract environment migrator into its own repo /via @tcoulter
