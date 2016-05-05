@@ -1,6 +1,6 @@
 # Live Libs for Solidity
 
-Providing resusable Solidity libraries that are live on the Ethereum blockchain.
+Providing reusable Solidity libraries that are live on the Ethereum blockchain.
 
 __Warning__: The documentation below is a *proposed* interface to live-libs. The author is using this documentation to solicit feedback.
 
