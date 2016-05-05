@@ -48,7 +48,9 @@ Via Javascript:
     console.log(libData.abi);
     console.log(libData.address);
 
-## Generating a library's abstract source code
+## Generating a library's interface
+
+It's important to note that live-libs does not store source code, but it does store a library's [ABI](https://github.com/ethereum/wiki/wiki/Ethereum-Contract-ABI). In order to compile contracts that use live-libs, you'll need to provide the [library interface](https://github.com/ethereum/wiki/wiki/Solidity-Features#interface-contracts) to the compiler.
 
 From the command line:
 
@@ -66,7 +68,7 @@ From the command line:
 
 __Warning:__ There is (currently) no way to update or remove your library. Once it's live it's live forever.
 
-__Warning:__ This software is under active development and the Live Libs registries (morden and live) will be replaced without warning. (Other than this warning.)
+__Warning:__ This software is under active development and the live-libs registries (morden and live) will be replaced without warning. (Other than this warning.)
 
 ## TODO
 
@@ -74,8 +76,6 @@ __Warning:__ This software is under active development and the Live Libs registr
 * Consider shelling out to `solc` on the command line, generate the abstract libs on the file system, providing the path like [this](https://solidity.readthedocs.io/en/latest/layout-of-source-files.html#use-in-actual-compilers).
 * Experiment with truffle integration
 * Experiment with dapple integration
-* Rework the system into one or more command line apps
-* Improve multiple environment support, especially: how to test against these libraries using ethereumjs/testrpc.
 * Extract environment migrator into its own repo /via @tcoulter
 * Consider the tradeoffs of allowing for library upgrades, or whether we should have versions (or both)
 
