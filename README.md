@@ -2,7 +2,7 @@
 
 Providing resusable Solidity libraries that are live on the Ethereum blockchain.
 
-__Warning__: The documentation below is a *proposed* interface to live-libs. The author using this documentation to solicit feedback.
+__Warning__: The documentation below is a *proposed* interface to live-libs. The author is using this documentation to solicit feedback.
 
 ## Install
 
@@ -10,13 +10,13 @@ __Warning__: The documentation below is a *proposed* interface to live-libs. The
 
 ## Specifying your environment
 
-You will need to provide your current Ethereum environment (testrpc, morden, or live) when interacting with live-libs. On the command line, this is provided via `-e` or `--env`. Via Javascript, it is passed in as the last (non-callback) argument to most methods.
+You will need to specify your current Ethereum environment (testrpc, morden, or live) when interacting with live-libs. On the command line, this is provided via `-e` or `--env`. Via Javascript, it is passed in as the last (non-callback) argument to most methods.
 
 The environment that you provide must match the environment of the [Ethereum node](https://ethereum.gitbooks.io/frontier-guide/content/getting_a_client.html) that is running on your computer. The live-libs command line interface currently assumes that the Ethereum node's RPC interface is available via `localhost:8545`.
 
 ## Setting up your testrpc environment
 
-Running your tests against [testrpc](https://github.com/ethereumjs/testrpc) is a standard way to speed up your development process. In order to execute the live-lib libraries on your testrpc node, you'll need to deploy the live-lib contract(s) and import the live-lib data. This will require a two-step process:
+Running your tests against [testrpc](https://github.com/ethereumjs/testrpc) is a standard way to speed up your development process. In order to execute the live-libs libraries on your testrpc node, you'll need to deploy the live-libs contract(s) and import the live-libs data. This will require a two-step process:
 
 1. Download the live-libs data from morden (you will need to run a node that connects to that network).
 2. Deploy the live-libs contract(s) and data to testrpc.
@@ -28,7 +28,7 @@ From the command line:
     $ # switch to testrpc
     $ live-libs deploy --env testrpc
 
-__Note__: If you need to restart your testrpc server, you'll need to re-deploy live-libs, but you won't need to re-download the data.
+__Note__: If you restart your testrpc server, you'll need to re-deploy live-libs, but you won't need to re-download the data.
 
 ## Getting a library's raw data
 
@@ -73,6 +73,7 @@ __Warning:__ This software is under active development and the live-libs registr
 ## TODO
 
 * Store `msg.sender` when lib is registered
+* If we continue to use browser-solidity, see [this issue](https://github.com/chriseth/browser-solidity/issues/167) for how to get rid of that nasty error wall-of-text
 * Consider shelling out to `solc` on the command line, generate the abstract libs on the file system, providing the path like [this](https://solidity.readthedocs.io/en/latest/layout-of-source-files.html#use-in-actual-compilers).
 * Experiment with truffle integration
 * Experiment with dapple integration
