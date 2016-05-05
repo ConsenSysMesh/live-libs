@@ -62,7 +62,7 @@ function deployLibCode(libName, contractInfo) {
 
 function registerLib(libName, contract) {
   var txHash = liveLibsContract.register(libName, contract.address, JSON.stringify(contract.abi), {value: 0, gas: 1000000});
-  var x = setInterval(function() {
+  var interval = setInterval(function() {
     console.log('Waiting for '+libName+' to be registered...');
 
     web3.eth.getTransactionReceipt(txHash, function(err, result) {
@@ -73,7 +73,7 @@ function registerLib(libName, contract) {
 
       if (result) {
         console.log(result);
-        clearInterval(x);
+        clearInterval(interval);
       }
     });
   }, 4000);
