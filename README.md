@@ -14,7 +14,10 @@ From the command line:
 
 Via web3:
 
-    var liveLibs = require('live-libs');
+    var web3 = ... // setup web3 object
+    
+    var LiveLibs = require('live-libs');
+    var liveLibs = new LiveLibs(web3);
     var libName = "Foo";
     var env = "testrpc"; // or "morden" or "live"
     var libData = liveLibs.get(libName, env);
