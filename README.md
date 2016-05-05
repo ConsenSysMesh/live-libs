@@ -10,7 +10,7 @@ __Warning__: The documentation below is a *proposed* interface to live-libs. The
 
 ## Specifying your environment
 
-You will need to specify your current Ethereum environment (testrpc, morden, or live) when interacting with live-libs. On the command line, this is provided via `-e` or `--env`. Via Javascript, it is passed in as the last (non-callback) argument to most methods.
+You will need to specify your current Ethereum environment (testrpc, morden, or live) when interacting with live-libs. On the command line, this is provided via `-e` or `--env`. Via Javascript, it is passed into the `new LiveLibs(web3, env)` constructor.
 
 The environment that you provide must match the environment of the [Ethereum node](https://ethereum.gitbooks.io/frontier-guide/content/getting_a_client.html) that is running on your computer. The live-libs command line interface currently assumes that the Ethereum node's RPC interface is available via `localhost:8545`.
 
@@ -39,14 +39,14 @@ From the command line:
 Via Javascript:
 
     var web3 = ... // setup web3 object
+    var env = "testrpc"; // or "morden" or "live"
 
     var LiveLibs = require('live-libs');
-    var liveLibs = new LiveLibs(web3);
+    var liveLibs = new LiveLibs(web3, env);
     var libName = "Foo";
-    var env = "testrpc"; // or "morden" or "live"
-    var libData = liveLibs.get(libName, env);
-    console.log(libData.abi);
+    var libData = liveLibs.get(libName);
     console.log(libData.address);
+    console.log(libData.abi);
 
 ## Generating a library's interface
 
@@ -58,7 +58,7 @@ From the command line:
 
 Via Javascript:
 
-    var source = liveLibs.gen(libName, env);
+    var source = liveLibs.gen(libName);
 
 ## How to register a live library
 
@@ -73,7 +73,6 @@ __Warning:__ This software is under active development and the live-libs registr
 ## TODO
 
 * Store `msg.sender` when lib is registered
-* If we continue to use browser-solidity, see [this issue](https://github.com/chriseth/browser-solidity/issues/167) for how to get rid of that nasty error wall-of-text
 * Consider shelling out to `solc` on the command line, generate the abstract libs on the file system, providing the path like [this](https://solidity.readthedocs.io/en/latest/layout-of-source-files.html#use-in-actual-compilers).
 * Experiment with truffle integration
 * Experiment with dapple integration
