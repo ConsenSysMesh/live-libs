@@ -1,0 +1,35 @@
+{
+  "name": "live-libs",
+  "namespace": "consensys",
+  "version": "0.0.1",
+  "description": "Live Libs - Providing resusable Solidity libraries that are live on the Ethereum blockchain.",
+  "dependencies": {
+    "solc": "^0.3.1-1",
+    "web3": "^0.15.3",
+    "yargs": "^4.7.0"
+  },
+  "devDependencies": {
+  },
+  "bin": {
+    "live-libs": "./cli.js"
+  },
+  "scripts": {
+    "test": "node ./cli.js test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/redsquirrel/live-libs.git"
+  },
+  "homepage": "https://github.com/redsquirrel/live-libs",
+  "bugs": {
+    "url": "https://github.com/redsquirrel/live-libs/issues"
+  },
+  "author": "consensys.net",
+  "authors": [
+    {
+      "name": "Dave Hoover",
+      "email": "dave.hoover@gmail.com",
+      "url": "https://github.com/redsquirrel"
+    }
+  ]
+}
