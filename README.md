@@ -2,7 +2,7 @@
 
 Providing reusable Solidity libraries that are live on the Ethereum blockchain.
 
-## Install (todo)
+## Install
 
     $ npm install -g live-libs
 
