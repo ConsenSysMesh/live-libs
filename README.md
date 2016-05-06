@@ -28,11 +28,19 @@ From the command line:
 
 __Note__: If you restart your testrpc server, you'll need to re-deploy live-libs, but you won't need to re-download the data.
 
-## Getting a library's raw data
+## Getting a library's information
+
+It's important to note that live-libs does not store source code, but it does store a library's [ABI](https://github.com/ethereum/wiki/wiki/Ethereum-Contract-ABI). In order to compile contracts that use live-libs, you'll need to provide the [library interface](https://github.com/ethereum/wiki/wiki/Solidity-Features#interface-contracts) to the compiler.
 
 From the command line:
 
     $ live-libs get LibName --env testrpc # or morden or live
+    Address:
+    0x3f4845...
+    ABI:
+    [{"constant":false,"inputs":...}]
+    Abstract source:
+    library LibName {...}
 
 Via Javascript:
 
@@ -42,21 +50,10 @@ Via Javascript:
     var LiveLibs = require('live-libs');
     var liveLibs = new LiveLibs(web3, env);
     var libName = "Foo";
-    var libData = liveLibs.get(libName);
-    console.log(libData.address);
-    console.log(libData.abi);
-
-## Generating a library's interface
-
-It's important to note that live-libs does not store source code, but it does store a library's [ABI](https://github.com/ethereum/wiki/wiki/Ethereum-Contract-ABI). In order to compile contracts that use live-libs, you'll need to provide the [library interface](https://github.com/ethereum/wiki/wiki/Solidity-Features#interface-contracts) to the compiler.
-
-From the command line:
-
-    $ live-libs gen LibName --env testrpc
-
-Via Javascript:
-
-    var source = liveLibs.gen(libName);
+    var libInfo = liveLibs.get(libName);
+    console.log(libInfo.address);
+    console.log(libInfo.abi);
+    console.log(libInfo.abstractSource());
 
 ## How to register a live library
 
@@ -72,7 +69,9 @@ __Warning:__ This software is under active development and the live-libs registr
 
 * Store `msg.sender` when lib is registered
 * Test whether libraries can `selfdestruct`
+* Provide support for more networks (such as the ConsenSys testnet)
 * Updating morden with live data
+* Investigate pudding
 * Extract environment migrator into its own repo /via @tcoulter
 * Consider the tradeoffs of allowing for library upgrades, or whether we should have versions (or both)
 * Consider shelling out to `solc` on the command line, generate the abstract libs on the file system, providing the path like [this](https://solidity.readthedocs.io/en/latest/layout-of-source-files.html#use-in-actual-compilers).

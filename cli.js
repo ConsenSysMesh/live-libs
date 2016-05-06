@@ -20,20 +20,14 @@ var cmd = argv._[0];
 
 if (cmd == "get") {
   var libName = argv._[1];
-  var libData = liveLibs.get(libName);
+  var libInfo = liveLibs.get(libName);
 
-  console.log(libName+' address:');
-  console.log(libData.address);
-  console.log(libName+' ABI:');
-  console.log(libData.abi);
-}
-
-if (cmd == "gen") {
-  var libName = argv._[1];
-  var source = liveLibs.gen(libName);
-
-  console.log(libName+' abstract interface:');
-  console.log(source);
+  console.log('Address:');
+  console.log(libInfo.address);
+  console.log('ABI:');
+  console.log(libInfo.abi);
+  console.log('Abstract source:');
+  console.log(libInfo.abstractSource());
 }
 
 if (cmd == "register") {

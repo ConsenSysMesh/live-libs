@@ -12,12 +12,11 @@ function LiveLibs(web3, environment) {
   this.get = function(libName) {
     var contractInstance = contractFor(web3, environment);
     var rawLibData = contractInstance.data(libName);
-    return {address: rawLibData[0], abi: rawLibData[1]};
-  };
-
-  this.gen = function(libName) {
-    var libData = this.get(libName);
-    return generateAbstractLib(libName, libData.abi);
+    return {
+      address: rawLibData[0],
+      abi: rawLibData[1],
+      abstractSource: function() { return generateAbstractLib(libName, rawLibData[1]); }
+    };
   };
 
   function register(libName, address, abiString) {
