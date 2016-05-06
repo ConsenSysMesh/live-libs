@@ -9,9 +9,17 @@ var testRpcAddressCache = '/tmp/bar.txt';
 
 function LiveLibs(web3, environment) {
 
+  function _contract() {
+    return contractFor(web3, environment);
+  }
+  // To provide direct access to the contract
+  this._contract = _contract;
+
   this.get = function(libName) {
-    var contractInstance = contractFor(web3, environment);
-    var rawLibData = contractInstance.data(libName);
+    var rawLibData = _contract().data(libName);
+
+    if (blank(rawLibData)) return;
+
     return {
       address: rawLibData[0],
       abi: rawLibData[1],
@@ -22,8 +30,7 @@ function LiveLibs(web3, environment) {
   function register(libName, address, abiString) {
     web3.eth.defaultAccount = web3.eth.coinbase;
 
-    var contractInstance = contractFor(web3, environment);
-    contractInstance.register(libName, address, abiString, {value: 0, gas: 1000000}, function(err, txHash) {
+    _contract().register(libName, address, abiString, {value: 0, gas: 1000000}, function(err, txHash) {
       var interval = setInterval(function() {
         web3.eth.getTransactionReceipt(txHash, function(err, receipt) {
           if (err != null) {
@@ -42,15 +49,14 @@ function LiveLibs(web3, environment) {
   this.register = register; 
 
   this.downloadData = function() {
-    var contractInstance = contractFor(web3, environment);
-    var dataToStore = extractRegistryData(contractInstance, web3);
+    var dataToStore = extractRegistryData(_contract(), web3);
     if (fs.existsSync(dataFilePath))
       fs.unlinkSync(dataFilePath);
     console.log("Writing data");
     fs.writeFileSync(dataFilePath, JSON.stringify(dataToStore));
   }
 
-  this.deployTestRPC = function() {
+  this.deploy = function() {
     web3.eth.defaultAccount = web3.eth.coinbase;
 
     // TODO: This swallows exceptions (need promise reject)
@@ -70,20 +76,18 @@ function LiveLibs(web3, environment) {
   };
 
   function contractFor(web3, environment) {
+    var config = parseNetworkConfig();
     // TODO: maybe just provide a minimal abi, and then pull the abi from the network? (if it registers itself)
-    var abi = [{"constant":true,"inputs":[{"name":"","type":"bytes32"}],"name":"data","outputs":[{"name":"a","type":"address"},{"name":"abi","type":"string"}],"type":"function"},{"constant":true,"inputs":[],"name":"list","outputs":[{"name":"","type":"bytes32[]"}],"type":"function"},{"constant":true,"inputs":[{"name":"","type":"uint256"}],"name":"names","outputs":[{"name":"","type":"bytes32"}],"type":"function"},{"constant":true,"inputs":[{"name":"name","type":"bytes32"}],"name":"get","outputs":[{"name":"","type":"address"},{"name":"","type":"string"}],"type":"function"},{"constant":false,"inputs":[{"name":"name","type":"bytes32"},{"name":"a","type":"address"},{"name":"abi","type":"string"}],"name":"register","outputs":[],"type":"function"}];
+    var abi = [{"constant":true,"inputs":[{"name":"","type":"bytes32"}],"name":"data","outputs":[{"name":"a","type":"address"},{"name":"abi","type":"string"},{"name":"sender","type":"address"}],"type":"function"},{"constant":true,"inputs":[],"name":"list","outputs":[{"name":"","type":"bytes32[]"}],"type":"function"},{"constant":true,"inputs":[{"name":"","type":"uint256"}],"name":"names","outputs":[{"name":"","type":"bytes32"}],"type":"function"},{"constant":true,"inputs":[{"name":"name","type":"bytes32"}],"name":"get","outputs":[{"name":"","type":"address"},{"name":"","type":"string"}],"type":"function"},{"constant":false,"inputs":[{"name":"name","type":"bytes32"},{"name":"a","type":"address"},{"name":"abi","type":"string"}],"name":"register","outputs":[],"type":"function"}];
     var contract = web3.eth.contract(abi);
     var instance;
-    if (environment == "live") {
-      // TODO
-      throw('Live Ethereum network is not yet supported');
-    } else if (environment.match(/morden/i)) {
-      instance = contract.at("0x2a8adffaccdf25c8f8e75a73fc69a700689e5cb4");
-    } else if (environment == "testrpc") {
+    if (environment == "testrpc") {
       instance = findTestRPC(web3, contract);
       if (!instance) throw(Error('Contract instance not found for testrpc!'));
+    } else if (config[environment]) {
+      instance = contract.at(config[environment]);
     } else {
-      throw(environment + ' is not a recognized environment');
+      throw(environment + ' is not a recognized Ethereum environment.');
     }
     // TODO: Detect missing contract via web3.eth.getCode
     return instance;
@@ -104,8 +108,10 @@ function LiveLibs(web3, environment) {
 
     return new Promise(function(resolve, reject) {
       deployer.deploy(web3, 'LiveLibs', output.abi, output.code, function(_, contract) {
-        console.log('Caching contract at '+contract.address);
-        fs.writeFileSync(testRpcAddressCache, contract.address);
+        if (environment == "testrpc") {
+          console.log('Caching contract at '+contract.address);
+          fs.writeFileSync(testRpcAddressCache, contract.address);
+        }
         resolve(contract);
       });
     }).then(function(contract) {
@@ -126,6 +132,16 @@ function LiveLibs(web3, environment) {
       };
     });
     return dataToStore;
+  }
+
+  function parseNetworkConfig() {
+    var jsonString = fs.readFileSync('./networks.json');
+    return JSON.parse(jsonString);
+  }
+
+  function blank(rawLibData) {
+    var address = rawLibData[0];
+    return address == '0x0000000000000000000000000000000000000000';
   }
 }
 module.exports = LiveLibs;

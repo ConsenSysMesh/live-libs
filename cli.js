@@ -21,13 +21,16 @@ var cmd = argv._[0];
 if (cmd == "get") {
   var libName = argv._[1];
   var libInfo = liveLibs.get(libName);
-
-  console.log('Address:');
-  console.log(libInfo.address);
-  console.log('ABI:');
-  console.log(libInfo.abi);
-  console.log('Abstract source:');
-  console.log(libInfo.abstractSource());
+  if (libInfo) {
+    console.log('Address:');
+    console.log(libInfo.address);
+    console.log('ABI:');
+    console.log(libInfo.abi);
+    console.log('Abstract source:');
+    console.log(libInfo.abstractSource());
+  } else {
+    console.log(libName+' is not registered on the '+env+' live-libs instance.');
+  }
 }
 
 if (cmd == "register") {
@@ -40,7 +43,7 @@ if (cmd == "download") {
 }
 
 if (cmd == "deploy" && env == "testrpc") {
-  liveLibs.deployTestRPC();
+  liveLibs.deploy();
 }
 
 // TODO: Handle case where cmd matches nothing

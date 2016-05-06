@@ -67,14 +67,13 @@ __Warning:__ This software is under active development and the live-libs registr
 
 ## TODO
 
-* Store `msg.sender` when lib is registered
+* Need to move files used for local data into a more standard location (`~/.live-libs`)
 * Test whether libraries can `selfdestruct`
-* Provide support for more networks (such as the ConsenSys testnet)
-* Updating morden with live data
+* Script for updating newly-deployed live-lib contract with existing network data (useful for when the live-lib contract is updated)
+* Script for updating morden live-lib contract with live network data
 * Investigate pudding
 * Extract environment migrator into its own repo /via @tcoulter
 * Consider the tradeoffs of allowing for library upgrades, or whether we should have versions (or both)
-* Consider shelling out to `solc` on the command line, generate the abstract libs on the file system, providing the path like [this](https://solidity.readthedocs.io/en/latest/layout-of-source-files.html#use-in-actual-compilers).
 
 ## Author
 

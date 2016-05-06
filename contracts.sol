@@ -2,6 +2,7 @@ contract LiveLibs {
     struct LibData {
         address a;
         string abi;
+        address sender;
     }
 
     bytes32[] public names;
@@ -10,7 +11,7 @@ contract LiveLibs {
     function register(bytes32 name, address a, string abi) {
         if (data[name].a == 0) {
             names.push(name);
-            data[name] = LibData({ a: a, abi: abi});
+            data[name] = LibData({ a: a, abi: abi, sender: msg.sender});
         }
     }
 
