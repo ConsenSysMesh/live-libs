@@ -1,8 +1,8 @@
 var fs = require('fs');
 
-var compiler = require('./compiler');
-var generateAbstractLib = require('./generate');
-var deployer = require('./deployer');
+var compiler = require('./lib/compiler');
+var generateAbstractLib = require('./lib/generate');
+var deployer = require('./lib/deployer');
 
 var dataFilePath = '/tmp/foo.json';
 var testRpcAddressCache = '/tmp/bar.txt';

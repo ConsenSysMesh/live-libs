@@ -10,6 +10,7 @@
   },
   "devDependencies": {
   },
+  "main": "./index.js",
   "bin": {
     "live-libs": "./cli.js"
   },
