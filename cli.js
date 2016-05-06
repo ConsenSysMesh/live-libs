@@ -1,7 +1,13 @@
 #!/usr/bin/env node
 
-var argv = require('yargs').argv;
+var argv = require('yargs').option('address', {type: 'string'}).argv;
 var env = argv.e || argv.env;
+
+// TODO: how to handle this via yargs?
+if (!env) {
+  console.log("You must specify an enviroment with -e or --env");
+  process.exit(1);
+}
 
 var Web3 = require('web3');
 var web3 = new Web3();
@@ -29,3 +35,18 @@ if (cmd == "gen") {
   console.log(libName+' abstract interface:');
   console.log(source);
 }
+
+if (cmd == "register") {
+  var libName = argv._[1];
+  liveLibs.register(libName, argv.address, argv.abi);
+}
+
+if (cmd == "download") {
+  liveLibs.downloadData();
+}
+
+if (cmd == "deploy" && env == "testrpc") {
+  liveLibs.deployTestRPC();
+}
+
+// TODO: Handle case where cmd matches nothing

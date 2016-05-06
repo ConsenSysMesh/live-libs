@@ -2,9 +2,7 @@
 
 Providing reusable Solidity libraries that are live on the Ethereum blockchain.
 
-__Warning__: The documentation below is a *proposed* interface to live-libs. The author is using this documentation to solicit feedback.
-
-## Install
+## Install (todo)
 
     $ npm install -g live-libs
 
@@ -64,7 +62,7 @@ Via Javascript:
 
 From the command line:
 
-    $ live-libs register YourLibName --abi '[...]' --address 0x45e2... --env testnet # or morden or live
+    $ live-libs register YourLibName --address 0x45e2... --abi '[...]' --env testrpc # or morden or live
 
 __Warning:__ There is (currently) no way to update or remove your library. Once it's live it's live forever.
 
@@ -73,11 +71,11 @@ __Warning:__ This software is under active development and the live-libs registr
 ## TODO
 
 * Store `msg.sender` when lib is registered
-* Consider shelling out to `solc` on the command line, generate the abstract libs on the file system, providing the path like [this](https://solidity.readthedocs.io/en/latest/layout-of-source-files.html#use-in-actual-compilers).
-* Experiment with truffle integration
-* Experiment with dapple integration
+* Test whether libraries can `selfdestruct`
+* Updating morden with live data
 * Extract environment migrator into its own repo /via @tcoulter
 * Consider the tradeoffs of allowing for library upgrades, or whether we should have versions (or both)
+* Consider shelling out to `solc` on the command line, generate the abstract libs on the file system, providing the path like [this](https://solidity.readthedocs.io/en/latest/layout-of-source-files.html#use-in-actual-compilers).
 
 ## Author
 
