@@ -65,15 +65,10 @@ __Warning:__ There is (currently) no way to update or remove your library. Once 
 
 __Warning:__ This software is under active development and the live-libs registries (morden and live) will be replaced without warning. (Other than this warning.)
 
-## TODO
+## Where is this headed?
 
-* Need to move files used for local data into a more standard location (`~/.live-libs`)
-* Test whether libraries can `selfdestruct`
-* Script for updating newly-deployed live-lib contract with existing network data (useful for when the live-lib contract is updated)
-* Script for updating morden live-lib contract with live network data
-* Investigate pudding
-* Extract environment migrator into its own repo /via @tcoulter
-* Consider the tradeoffs of allowing for library upgrades, or whether we should have versions (or both)
+* [TODO](https://github.com/ConsenSys/live-libs/blob/master/TODO.md): a few weeks out
+* [Roadmap](https://github.com/ConsenSys/live-libs/wiki/Roadmap): a few months out
 
 ## Author
 
