@@ -4,8 +4,9 @@ var compiler = require('./lib/compiler');
 var generateAbstractLib = require('./lib/generate');
 var deployer = require('./lib/deployer');
 
-var dataFilePath = '/tmp/foo.json';
-var testRpcAddressCache = '/tmp/bar.txt';
+var dataDirPath = process.env['HOME']+'/.live-libs/';
+var dataFilePath = dataDirPath+'download-data.json';
+var testRpcAddress = dataDirPath+'testrpc-address.txt';
 
 function LiveLibs(web3, environment) {
 
@@ -49,6 +50,7 @@ function LiveLibs(web3, environment) {
   this.register = register; 
 
   this.downloadData = function() {
+    ensureHiddenDirectory();
     var dataToStore = extractRegistryData(_contract(), web3);
     if (fs.existsSync(dataFilePath))
       fs.unlinkSync(dataFilePath);
@@ -94,8 +96,8 @@ function LiveLibs(web3, environment) {
   }
 
   function findTestRPC(web3, contract) {
-    if (fs.existsSync(testRpcAddressCache)) {
-      var address = fs.readFileSync(testRpcAddressCache, 'utf8');
+    if (fs.existsSync(testRpcAddress)) {
+      var address = fs.readFileSync(testRpcAddress, 'utf8');
       var contractCode = web3.eth.getCode(address);
       if (contractCode != '0x0')
         return contract.at(address);
@@ -109,8 +111,9 @@ function LiveLibs(web3, environment) {
     return new Promise(function(resolve, reject) {
       deployer.deploy(web3, 'LiveLibs', output.abi, output.code, function(_, contract) {
         if (environment == "testrpc") {
+          ensureHiddenDirectory();
           console.log('Caching contract at '+contract.address);
-          fs.writeFileSync(testRpcAddressCache, contract.address);
+          fs.writeFileSync(testRpcAddress, contract.address);
         }
         resolve(contract);
       });
@@ -132,6 +135,11 @@ function LiveLibs(web3, environment) {
       };
     });
     return dataToStore;
+  }
+
+  function ensureHiddenDirectory() {
+    if (!fs.existsSync(dataDirPath))
+      fs.mkdirSync(dataDirPath);
   }
 
   function parseNetworkConfig() {
