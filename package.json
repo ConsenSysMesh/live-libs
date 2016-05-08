@@ -17,6 +17,7 @@
     "type": "git",
     "url": "https://github.com/consensys/live-libs.git"
   },
+  "license": "MIT License. Copyright Consensys LLC, and authors. All rights reserved.",
   "homepage": "https://github.com/consensys/live-libs",
   "bugs": {
     "url": "https://github.com/consensys/live-libs/issues"

@@ -4,7 +4,7 @@ var compiler = require('./lib/compiler');
 var generateAbstractLib = require('./lib/generate');
 var deployer = require('./lib/deployer');
 
-var dataDirPath = process.env['HOME']+'/.live-libs/';
+var dataDirPath = process.env.HOME+'/.live-libs/';
 var dataFilePath = dataDirPath+'download-data.json';
 var testRpcAddress = dataDirPath+'testrpc-address.txt';
 
