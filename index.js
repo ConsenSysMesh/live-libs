@@ -33,6 +33,14 @@ function LiveLibs(web3, environment) {
 
     return new Promise(function(resolve, reject) {
       _contract().register(libName, address, abiString, {value: 0, gas: 1000000}, function(err, txHash) {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(txHash);
+        }
+      });
+    }).then(function(txHash) {
+      return new Promise(function(resolve, reject) {
         var interval = setInterval(function() {
           web3.eth.getTransactionReceipt(txHash, function(err, receipt) {
             if (err != null) {
