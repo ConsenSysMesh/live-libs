@@ -31,19 +31,22 @@ function LiveLibs(web3, environment) {
   function register(libName, address, abiString) {
     web3.eth.defaultAccount = web3.eth.coinbase;
 
-    _contract().register(libName, address, abiString, {value: 0, gas: 1000000}, function(err, txHash) {
-      var interval = setInterval(function() {
-        web3.eth.getTransactionReceipt(txHash, function(err, receipt) {
-          if (err != null) {
-            clearInterval(interval);
-            throw(Error(err)); // TODO: test this
-          }
-          if (receipt != null) {
-            console.log("Registered " + libName + "!");
-            clearInterval(interval);
-          }
-        });
-      }, 500);
+    return new Promise(function(resolve, reject) {
+      _contract().register(libName, address, abiString, {value: 0, gas: 1000000}, function(err, txHash) {
+        var interval = setInterval(function() {
+          web3.eth.getTransactionReceipt(txHash, function(err, receipt) {
+            if (err != null) {
+              clearInterval(interval);
+              reject(err);
+            }
+            if (receipt != null) {
+              console.log("Registered " + libName + "!");
+              resolve();
+              clearInterval(interval);
+            }
+          });
+        }, 500);
+      });
     });
   };
   // Defined as a named function so that it can be called privately
@@ -61,19 +64,32 @@ function LiveLibs(web3, environment) {
   this.deploy = function() {
     web3.eth.defaultAccount = web3.eth.coinbase;
 
-    // TODO: This swallows exceptions (need promise reject)
-    deployLiveLibContract(web3).then(function(contractInstance) {
+    return deployLiveLibContract(web3).then(function() {
       var data = fs.readFileSync(dataFilePath);
       var jsonData = JSON.parse(data);
+      var promises = [];
+
       Object.keys(jsonData).forEach(function(libName) {
         // Skip LiveLibs, since we already deployed and registered it
         if (libName == 'LiveLibs') return;
         console.log("Deploying "+libName);
-        // TODO: This swallows exceptions
-        deployer.deployLibCode(web3, libName, jsonData[libName], function(_, contract) {
-          register(libName, contract.address, JSON.stringify(jsonData[libName].abi));
-        });
+        promises.push(
+          new Promise(function(resolve, reject) {
+            deployer.deployLibCode(web3, libName, jsonData[libName], function(error, contract) {
+              if (error) {
+                console.error('Problem deploying '+libName+': '+error);
+                reject(error);
+              } else {
+                resolve(contract);
+              }
+            });
+          }).then(function(contract) {
+            return register(libName, contract.address, JSON.stringify(jsonData[libName].abi));
+          })
+        );
       });
+
+      return Promise.all(promises);
     });
   };
 
@@ -104,21 +120,27 @@ function LiveLibs(web3, environment) {
     }
   }
 
-  function deployLiveLibContract(web3, resolve, reject) {
+  function deployLiveLibContract(web3) {
     var source = fs.readFileSync('./contracts.sol', 'utf8');
     var output = compiler.compile(source, 'LiveLibs');
 
     return new Promise(function(resolve, reject) {
-      deployer.deploy(web3, 'LiveLibs', output.abi, output.code, function(_, contract) {
+      deployer.deploy(web3, 'LiveLibs', output.abi, output.code, function(err, contract) {
+        if (err) {
+          console.log(err);
+          reject(err);
+        }
+
         if (environment == "testrpc") {
           ensureHiddenDirectory();
-          console.log('Caching contract at '+contract.address);
           fs.writeFileSync(testRpcAddress, contract.address);
+          console.log('Stored contract address.');
         }
+
         resolve(contract);
       });
     }).then(function(contract) {
-      register('LiveLibs', contract.address, JSON.stringify(contract.abi));      
+      return register('LiveLibs', contract.address, JSON.stringify(contract.abi));
     });
   }
 
