@@ -10,7 +10,17 @@ web3.setProvider(new web3.providers.HttpProvider('http://0.0.0.0:8545'));
 var LiveLibs = require('../index.js');
 var liveLibs = new LiveLibs(web3, 'testrpc');
 
-liveLibs.deploy().then(function() {
+var deploy;
+
+try {
+  deploy = liveLibs.deploy()
+} catch(e) {
+  console.error('Error while setting up deploy: '+e);
+  console.error('Make sure you have testrpc running!')
+  process.exit(1);
+}
+
+deploy.then(function() {
 
   describe('Retrieving lib info', function() {
     it('foo', function() {
