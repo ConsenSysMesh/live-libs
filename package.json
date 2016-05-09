@@ -8,10 +8,17 @@
     "web3": "^0.15.3",
     "yargs": "^4.7.0"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "chai": "^3.5.0",
+    "mocha": "^2.4.5",
+    "ethereumjs-testrpc": "^2.0.7"
+  },
   "main": "./index.js",
   "bin": {
     "live-libs": "./cli.js"
+  },
+  "scripts": {
+    "test": "./node_modules/.bin/mocha --delay"
   },
   "repository": {
     "type": "git",

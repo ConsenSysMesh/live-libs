@@ -65,6 +65,9 @@ function LiveLibs(web3, environment) {
     web3.eth.defaultAccount = web3.eth.coinbase;
 
     return deployLiveLibContract(web3).then(function() {
+      if (!fs.existsSync(dataFilePath))
+        return Promise.resolve();
+      
       var data = fs.readFileSync(dataFilePath);
       var jsonData = JSON.parse(data);
       var promises = [];
