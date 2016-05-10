@@ -32,9 +32,13 @@ __Note__: If you restart your testrpc server, you'll need to re-deploy live-libs
 
 It's important to note that live-libs does not store source code, but it does store a library's [ABI](https://github.com/ethereum/wiki/wiki/Ethereum-Contract-ABI). In order to compile contracts that use live-libs, you'll need to provide the [library interface](https://github.com/ethereum/wiki/wiki/Solidity-Features#interface-contracts) to the compiler.
 
+__Note__: Only the latest version of the specified library is returned. We will support specific version lookups soon.
+
 From the command line:
 
     $ live-libs get LibName --env testrpc # or morden or live
+    Version:
+    3.5.8
     Address:
     0x3f4845...
     ABI:
@@ -51,6 +55,7 @@ Via Javascript:
     var liveLibs = new LiveLibs(web3, env);
     var libName = "Foo";
     var libInfo = liveLibs.get(libName);
+    console.log(libInfo.version);
     console.log(libInfo.address);
     console.log(libInfo.abi);
     console.log(libInfo.abstractSource());
@@ -59,9 +64,9 @@ Via Javascript:
 
 From the command line:
 
-    $ live-libs register YourLibName --address 0x45e2... --abi '[...]' --env testrpc # or morden or live
+    $ live-libs register YourLibName --version 3.5.8 --address 0x45e2... --abi '[...]' --env testrpc # or morden or live
 
-__Warning:__ There is (currently) no way to update or remove your library. Once it's live it's live forever.
+__Warning:__ There is no way to remove your library. Once it's live it's live forever.
 
 __Warning:__ This software is under active development and the live-libs registries (morden and live) will be replaced without warning. (Other than this warning.)
 
