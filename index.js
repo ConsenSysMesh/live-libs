@@ -1,3 +1,5 @@
+var VERSION = require('./package.json').version;
+
 var fs = require('fs');
 
 var compiler = require('./lib/compiler');
@@ -17,22 +19,44 @@ function LiveLibs(web3, environment) {
   this._contract = _contract;
 
   this.get = function(libName) {
-    var rawLibData = _contract().data(libName);
+    var contract = _contract();
 
-    if (blank(rawLibData)) return;
+    var rawVersions = contract.getVersions(libName);
+    if (rawVersions.length == 0) return;
+
+    var latestRaw = Math.max.apply(null, rawVersions);
+    var v = parseVersion(latestRaw);
+
+    var rawLibData = contract.get(libName, v.major, v.minor, v.patch);
 
     return {
+      version: v.string,
       address: rawLibData[0],
       abi: rawLibData[1],
       abstractSource: function() { return generateAbstractLib(libName, rawLibData[1]); }
     };
   };
 
-  function register(libName, address, abiString) {
+  function register(libName, version, address, abiString) {
     web3.eth.defaultAccount = web3.eth.coinbase;
 
     return new Promise(function(resolve, reject) {
-      _contract().register(libName, address, abiString, {value: 0, gas: 1000000}, function(err, txHash) {
+      var versionData;
+      if (version) {
+        versionData = version.split('.');
+      } else {
+        reject('No version specified for '+libName);
+      }
+
+      _contract().register(
+        libName,
+        versionData[0],
+        versionData[1],
+        versionData[2],
+        address,
+        abiString,
+        {value: 0, gas: 2000000}, // TODO: need to estimate this
+        function(err, txHash) {
         if (err) {
           reject(err);
         } else {
@@ -95,7 +119,7 @@ function LiveLibs(web3, environment) {
               }
             });
           }).then(function(contract) {
-            return register(libName, contract.address, JSON.stringify(jsonData[libName].abi));
+            return register(libName, jsonData[libName].version, contract.address, JSON.stringify(jsonData[libName].abi));
           })
         );
       });
@@ -107,7 +131,7 @@ function LiveLibs(web3, environment) {
   function contractFor(web3, environment) {
     var config = parseNetworkConfig();
     // TODO: maybe just provide a minimal abi, and then pull the abi from the network? (if it registers itself)
-    var abi = [{"constant":true,"inputs":[{"name":"","type":"bytes32"}],"name":"data","outputs":[{"name":"a","type":"address"},{"name":"abi","type":"string"},{"name":"sender","type":"address"}],"type":"function"},{"constant":true,"inputs":[],"name":"list","outputs":[{"name":"","type":"bytes32[]"}],"type":"function"},{"constant":true,"inputs":[{"name":"","type":"uint256"}],"name":"names","outputs":[{"name":"","type":"bytes32"}],"type":"function"},{"constant":true,"inputs":[{"name":"name","type":"bytes32"}],"name":"get","outputs":[{"name":"","type":"address"},{"name":"","type":"string"}],"type":"function"},{"constant":false,"inputs":[{"name":"name","type":"bytes32"},{"name":"a","type":"address"},{"name":"abi","type":"string"}],"name":"register","outputs":[],"type":"function"}];
+    var abi = [{"constant":true,"inputs":[{"name":"","type":"bytes32"},{"name":"","type":"uint256"}],"name":"versionMap","outputs":[{"name":"","type":"uint256"}],"type":"function"},{"constant":true,"inputs":[],"name":"list","outputs":[{"name":"","type":"bytes32[]"}],"type":"function"},{"constant":false,"inputs":[{"name":"name","type":"bytes32"},{"name":"major","type":"uint8"},{"name":"minor","type":"uint8"},{"name":"patch","type":"uint8"},{"name":"a","type":"address"},{"name":"abi","type":"string"}],"name":"register","outputs":[],"type":"function"},{"constant":true,"inputs":[{"name":"","type":"uint256"}],"name":"names","outputs":[{"name":"","type":"bytes32"}],"type":"function"},{"constant":true,"inputs":[{"name":"","type":"bytes32"},{"name":"","type":"uint8"},{"name":"","type":"uint8"},{"name":"","type":"uint8"}],"name":"versions","outputs":[{"name":"a","type":"address"},{"name":"abi","type":"string"},{"name":"sender","type":"address"}],"type":"function"},{"constant":true,"inputs":[{"name":"name","type":"bytes32"}],"name":"getVersions","outputs":[{"name":"","type":"uint256[]"}],"type":"function"},{"constant":true,"inputs":[{"name":"name","type":"bytes32"},{"name":"major","type":"uint8"},{"name":"minor","type":"uint8"},{"name":"patch","type":"uint8"}],"name":"get","outputs":[{"name":"","type":"address"},{"name":"","type":"string"}],"type":"function"}];
     var contract = web3.eth.contract(abi);
     var instance;
     if (environment == "testrpc") {
@@ -151,7 +175,7 @@ function LiveLibs(web3, environment) {
         resolve(contract);
       });
     }).then(function(contract) {
-      return register('LiveLibs', contract.address, JSON.stringify(contract.abi));
+      return register('LiveLibs', VERSION, contract.address, JSON.stringify(contract.abi));
     });
   }
 
@@ -160,14 +184,26 @@ function LiveLibs(web3, environment) {
     contractInstance.list().forEach(function(rawName) {
       var plainName = web3.toAscii(rawName).replace(/\0/g, '');
       console.log("Pulling " + plainName);
-      var libData = contractInstance.data(plainName);
-      dataToStore[plainName] = {
-        address: libData[0],
-        abi: JSON.parse(libData[1]),
-        code: web3.eth.getCode(libData[0])
-      };
+      contractInstance.getVersions(plainName).forEach(function(rawVersion) {
+        var v = parseVersion(rawVersion);
+        var libData = contractInstance.get(plainName, v.major, v.minor, v.patch);
+
+        dataToStore[plainName] = {
+          version: v.string,
+          address: libData[0],
+          abi: JSON.parse(libData[1]),
+          code: web3.eth.getCode(libData[0])
+        };
+      });
     });
     return dataToStore;
+  }
+
+  function parseVersion(raw) {
+    var major = Math.floor(raw / 1000000);
+    var minor = Math.floor((raw % 1000000) / 1000);
+    var patch = raw % 1000;
+    return {major: major, minor: minor, patch: patch, string: major+'.'+minor+'.'+patch};
   }
 
   function ensureHiddenDirectory() {
@@ -178,11 +214,6 @@ function LiveLibs(web3, environment) {
   function parseNetworkConfig() {
     var jsonString = fs.readFileSync('./networks.json');
     return JSON.parse(jsonString);
-  }
-
-  function blank(rawLibData) {
-    var address = rawLibData[0];
-    return address == '0x0000000000000000000000000000000000000000';
   }
 }
 module.exports = LiveLibs;

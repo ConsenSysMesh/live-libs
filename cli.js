@@ -22,6 +22,8 @@ if (cmd == "get") {
   var libName = argv._[1];
   var libInfo = liveLibs.get(libName);
   if (libInfo) {
+    console.log('Version:');
+    console.log(libInfo.version);
     console.log('Address:');
     console.log(libInfo.address);
     console.log('ABI:');
@@ -35,7 +37,9 @@ if (cmd == "get") {
 
 if (cmd == "register") {
   var libName = argv._[1];
-  liveLibs.register(libName, argv.address, argv.abi);
+  liveLibs.register(libName, argv.version, argv.address, argv.abi).catch(function(err) {
+    console.log(err);
+  });
 }
 
 if (cmd == "download") {
@@ -43,7 +47,9 @@ if (cmd == "download") {
 }
 
 if (cmd == "deploy" && env == "testrpc") {
-  liveLibs.deploy();
+  liveLibs.deploy().catch(function(err) {
+    console.log(err);
+  });
 }
 
 // TODO: Handle case where cmd matches nothing

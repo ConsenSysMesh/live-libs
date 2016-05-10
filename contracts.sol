@@ -1,24 +1,32 @@
 contract LiveLibs {
-    struct LibData {
+    struct Version {
         address a;
         string abi;
         address sender;
     }
 
-    bytes32[] public names;
-    mapping (bytes32 => LibData) public data;
+    bytes32[] public names; // TODO: Make this a Set
+
+    //       name                major            minor             patch
+    mapping (bytes32 => mapping (uint8 => mapping(uint8 => mapping (uint8 => Version)))) public versions;
+    mapping (bytes32 => uint[]) public versionMap;
     
-    function register(bytes32 name, address a, string abi) {
-        if (data[name].a == 0) {
+    function register(bytes32 name, uint8 major, uint8 minor, uint8 patch, address a, string abi) {
+        if (versions[name][major][minor][patch].a == 0) {
             names.push(name);
-            data[name] = LibData({ a: a, abi: abi, sender: msg.sender});
+            versionMap[name].push(1000000*major + 1000*minor + patch);
+            versions[name][major][minor][patch] = Version({ a: a, abi: abi, sender: msg.sender});
         }
     }
 
-    function get(bytes32 name) constant returns (address, string) {
-        if (data[name].a == 0) return;
-        LibData d = data[name];
-        return (d.a, d.abi);
+    function get(bytes32 name, uint8 major, uint8 minor, uint8 patch) constant returns (address, string) {
+        Version v = versions[name][major][minor][patch];
+        if (v.a == 0) return;
+        return (v.a, v.abi);
+    }
+
+    function getVersions(bytes32 name) constant returns (uint[]) {
+        return versionMap[name];
     }
 
     function list() constant returns (bytes32[]) {
