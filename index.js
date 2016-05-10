@@ -5,25 +5,24 @@ var migration = require('./lib/migration');
 var versionUtils = require('./lib/version-utils');
 var fileUtils = require('./lib/file-utils');
 
-function LiveLibs(web3, environment) {
+function LiveLibs(web3) {
 
-  function _contract() {
-    return contractFor(web3, environment);
+  var _contract = findContract();
+  if (_contract) {
+    this.env = _contract.env;
+  } else {
+    this.env = 'testrpc';
   }
-  // To provide direct access to the contract
-  this._contract = _contract;
 
   this.get = function(libName, version) {
-    var contract = _contract();
-
     if (version) {
       version = versionUtils.parse(version);
     } else {
-      version = versionUtils.latest(contract, libName);
+      version = versionUtils.latest(findContract(), libName);
       if (!version) return;
     }
 
-    var rawLibData = contract.get(libName, version.major, version.minor, version.patch);
+    var rawLibData = findContract().get(libName, version.major, version.minor, version.patch);
 
     if (blankAddress(rawLibData[0])) return;
 
@@ -46,7 +45,7 @@ function LiveLibs(web3, environment) {
         reject('No version specified for '+libName);
       }
 
-      _contract().register(
+      findContract().register(
         libName,
         parsedVersion.major,
         parsedVersion.minor,
@@ -83,38 +82,48 @@ function LiveLibs(web3, environment) {
   this.register = register; 
 
   this.downloadData = function() {
-    migration.downloadData(_contract(), web3);
+    migration.downloadData(findContract(), web3);
   }
 
-  this.deploy = function() {
-    return migration.deploy(register, web3, environment);
+  this.deploy = function(onTestrpc) {
+    return migration.deploy(register, web3, onTestrpc);
   };
 
-  function contractFor(web3, environment) {
-    var config = parseNetworkConfig();
+  function liveAddress(address) {
+    var contractCode = web3.eth.getCode(address);
+    return contractCode != '0x0';
+  }
+
+  function findContract() {
+    if (_contract) return _contract;
+
     // TODO: maybe just provide a minimal abi, and then pull the abi from the network? (if it registers itself)
     var abi = [{"constant":true,"inputs":[{"name":"","type":"bytes32"},{"name":"","type":"uint256"}],"name":"versionMap","outputs":[{"name":"","type":"uint256"}],"type":"function"},{"constant":true,"inputs":[],"name":"list","outputs":[{"name":"","type":"bytes32[]"}],"type":"function"},{"constant":false,"inputs":[{"name":"name","type":"bytes32"},{"name":"major","type":"uint8"},{"name":"minor","type":"uint8"},{"name":"patch","type":"uint8"},{"name":"a","type":"address"},{"name":"abi","type":"string"}],"name":"register","outputs":[],"type":"function"},{"constant":true,"inputs":[{"name":"","type":"uint256"}],"name":"names","outputs":[{"name":"","type":"bytes32"}],"type":"function"},{"constant":true,"inputs":[{"name":"","type":"bytes32"},{"name":"","type":"uint8"},{"name":"","type":"uint8"},{"name":"","type":"uint8"}],"name":"versions","outputs":[{"name":"a","type":"address"},{"name":"abi","type":"string"},{"name":"sender","type":"address"}],"type":"function"},{"constant":true,"inputs":[{"name":"name","type":"bytes32"}],"name":"getVersions","outputs":[{"name":"","type":"uint256[]"}],"type":"function"},{"constant":true,"inputs":[{"name":"name","type":"bytes32"},{"name":"major","type":"uint8"},{"name":"minor","type":"uint8"},{"name":"patch","type":"uint8"}],"name":"get","outputs":[{"name":"","type":"address"},{"name":"","type":"string"}],"type":"function"}];
     var contract = web3.eth.contract(abi);
-    var instance;
-    if (environment == "testrpc") {
-      instance = findTestRPC(web3, contract);
-      if (!instance) throw(Error('Contract instance not found for testrpc!'));
-    } else if (config[environment]) {
-      instance = contract.at(config[environment]);
-    } else {
-      throw(environment + ' is not a recognized Ethereum environment.');
-    }
-    // TODO: Detect missing contract via web3.eth.getCode
-    return instance;
-  }
 
-  function findTestRPC(web3, contract) {
-    if (fs.existsSync(fileUtils.testRpcAddress)) {
-      var address = fs.readFileSync(fileUtils.testRpcAddress, 'utf8');
-      var contractCode = web3.eth.getCode(address);
-      if (contractCode != '0x0')
-        return contract.at(address);
+    var instance;
+
+    var config = parseNetworkConfig();
+    Object.keys(config).forEach(function(networkName) {
+      var address = config[networkName];
+      if (liveAddress(address)) {
+        instance = contract.at(address);
+        instance.env = networkName;
+      }
+    });
+
+    if (!instance) {
+      if (fs.existsSync(fileUtils.testRpcAddress))
+        address = fs.readFileSync(fileUtils.testRpcAddress, 'utf8');
+      if (!address)
+        return console.error('Contract address not found for testrpc!');
+      instance = contract.at(address);
+      if (!liveAddress(address))
+        return console.error('Contract not found for testrpc!');
+      instance.env = 'testrpc';
     }
+
+    return instance;
   }
 
   function parseNetworkConfig() {

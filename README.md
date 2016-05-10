@@ -6,11 +6,9 @@ Providing reusable Solidity libraries that are live on the Ethereum blockchain.
 
     $ npm install -g live-libs
 
-## Specifying your environment
+## Setting up your environment
 
-You will need to specify your current Ethereum environment (testrpc, morden, or live) when interacting with live-libs. On the command line, this is provided via `-e` or `--env`. Via Javascript, it is passed into the `new LiveLibs(web3, env)` constructor.
-
-The environment that you provide must match the environment of the [Ethereum node](https://ethereum.gitbooks.io/frontier-guide/content/getting_a_client.html) that is running on your computer. The live-libs command line interface currently assumes that the Ethereum node's RPC interface is available via `localhost:8545`.
+You will need to be connected to an Ethereum network (testrpc, morden, live, etc) when interacting with live-libs. Follow [these instructions](https://ethereum.gitbooks.io/frontier-guide/content/getting_a_client.html) to install an Ethereum node. The live-libs command line interface currently assumes that the Ethereum node's RPC interface is available via `localhost:8545`.
 
 ## Setting up your testrpc environment
 
@@ -22,9 +20,9 @@ Running your tests against [testrpc](https://github.com/ethereumjs/testrpc) is a
 From the command line:
 
     $ # running a morden node
-    $ live-libs download --env morden
+    $ live-libs download
     $ # switch to testrpc
-    $ live-libs deploy --env testrpc
+    $ live-libs deploy
 
 __Note__: If you restart your testrpc server, you'll need to re-deploy live-libs, but you won't need to re-download the data.
 
@@ -36,7 +34,7 @@ __Note__: If you don't specify the `--version`, the latest version is used.
 
 From the command line:
 
-    $ live-libs get LibName [--version 3.5.8] --env testrpc # or morden or live
+    $ live-libs get LibName [--version 3.5.8]
     Version:
     3.5.8
     Address:
@@ -49,10 +47,9 @@ From the command line:
 Via Javascript:
 
     var web3 = ... // setup web3 object
-    var env = "testrpc"; // or "morden" or "live"
 
     var LiveLibs = require('live-libs');
-    var liveLibs = new LiveLibs(web3, env);
+    var liveLibs = new LiveLibs(web3);
     var libName = "Foo";
     var version = "3.5.8"; // optional
     var libInfo = liveLibs.get(libName, version);
@@ -65,9 +62,9 @@ Via Javascript:
 
 From the command line:
 
-    $ live-libs register YourLibName --version 3.5.8 --address 0x45e2... --abi '[...]' --env testrpc # or morden or live
+    $ live-libs register YourLibName --version 3.5.8 --address 0x45e2... --abi '[...]'
 
-__Warning:__ There is no way to remove your library. Once it's live it's live forever.
+__Warning:__ There is no way to remove your library. Once it's live, it's live forever.
 
 __Warning:__ This software is under active development and the live-libs registries (morden and live) will be replaced without warning. (Other than this warning.)
 

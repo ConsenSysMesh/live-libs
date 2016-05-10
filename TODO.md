@@ -1,5 +1,4 @@
 * Implement lib testing
-* We may be able to replace all the env passing if we can come up with a good auto-detect environment method (just try the stored addresses, otherwise assume testrpc) /ht @karlfloersch
 * Switch all web3 calls to async so we can use testrpc more efficiently
 * Script for updating newly-deployed live-lib contract with existing network data (useful for when the live-lib contract is updated)
 * Script for updating morden live-lib contract with live network data

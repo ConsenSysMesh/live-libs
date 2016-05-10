@@ -7,7 +7,7 @@ web3.setProvider(new web3.providers.HttpProvider('http://0.0.0.0:8545'));
 //web3.setProvider(TestRPC.provider());
 
 var LiveLibs = require('../index.js');
-var liveLibs = new LiveLibs(web3, 'testrpc');
+var liveLibs = new LiveLibs(web3);
 
 function deployToTestRPC() {
   var deploy;
