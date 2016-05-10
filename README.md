@@ -10,22 +10,6 @@ Providing reusable Solidity libraries that are live on the Ethereum blockchain.
 
 You will need to be connected to an Ethereum network (testrpc, morden, live, etc) when interacting with live-libs. Follow [these instructions](https://ethereum.gitbooks.io/frontier-guide/content/getting_a_client.html) to install an Ethereum node. The live-libs command line interface currently assumes that the Ethereum node's RPC interface is available via `localhost:8545`.
 
-## Setting up your testrpc environment
-
-Running your tests against [testrpc](https://github.com/ethereumjs/testrpc) is a standard way to speed up your development process. In order to execute the live-libs libraries on your testrpc node, you'll need to deploy the live-libs contract(s) and import the live-libs data. This will require a two-step process:
-
-1. Download the live-libs data from morden (you will need to run a node that connects to that network).
-2. Deploy the live-libs contract(s) and data to testrpc.
-
-From the command line:
-
-    $ # running a morden node
-    $ live-libs download
-    $ # switch to testrpc
-    $ live-libs deploy
-
-__Note__: If you restart your testrpc server, you'll need to re-deploy live-libs, but you won't need to re-download the data.
-
 ## Getting a library's information
 
 It's important to note that live-libs does not store source code, but it does store a library's [ABI](https://github.com/ethereum/wiki/wiki/Ethereum-Contract-ABI). In order to compile contracts that use live-libs, you'll need to provide the [library interface](https://github.com/ethereum/wiki/wiki/Solidity-Features#interface-contracts) to the compiler.
@@ -67,6 +51,22 @@ From the command line:
 __Warning:__ There is no way to remove your library. Once it's live, it's live forever.
 
 __Warning:__ This software is under active development and the live-libs registries (morden and live) will be replaced without warning. (Other than this warning.)
+
+## Setting up your testrpc environment
+
+Running your tests against [testrpc](https://github.com/ethereumjs/testrpc) is a standard way to speed up your development process. In order to execute the live-libs libraries on your testrpc node, you'll need to deploy the live-libs contract(s) and import the live-libs data. This will require a two-step process:
+
+1. Download the live-libs data from morden (you will need to run a node that connects to that network).
+2. Deploy the live-libs contract(s) and data to testrpc.
+
+From the command line:
+
+    $ # running a morden node
+    $ live-libs download
+    $ # switch to testrpc
+    $ live-libs deploy
+
+__Note__: If you restart your testrpc server, you'll need to re-deploy live-libs, but you won't need to re-download the data.
 
 ## Where is this headed?
 

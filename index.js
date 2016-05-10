@@ -69,7 +69,7 @@ function LiveLibs(web3) {
               reject(err);
             }
             if (receipt != null) {
-              console.log("Registered " + libName + "!");
+              console.log('Registered '+libName+' '+version+'!');
               resolve();
               clearInterval(interval);
             }
@@ -106,6 +106,7 @@ function LiveLibs(web3) {
     });
 
     if (!instance) {
+      var address;
       if (fs.existsSync(fileUtils.testRpcAddress))
         address = fs.readFileSync(fileUtils.testRpcAddress, 'utf8');
       if (!address)
@@ -120,7 +121,7 @@ function LiveLibs(web3) {
   }
 
   function parseNetworkConfig() {
-    var jsonString = fs.readFileSync('./networks.json');
+    var jsonString = fs.readFileSync('./networks.json', 'utf8');
     return JSON.parse(jsonString);
   }
 

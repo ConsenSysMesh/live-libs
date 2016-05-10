@@ -13,7 +13,7 @@ function deployToTestRPC() {
   var deploy;
 
   try {
-    deploy = liveLibs.deploy();
+    deploy = liveLibs.deploy(true);
   } catch(e) {
     console.error('Error while setting up deploy: '+e);
     console.error('Make sure you have testrpc running!')

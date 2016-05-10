@@ -18,7 +18,11 @@ contract LiveLibs {
         if (versions[name][major][minor][patch].a == 0) {
             names.push(name);
             versionMap[name].push(1000000*major + 1000*minor + patch);
-            versions[name][major][minor][patch] = Version({ a: a, abi: abi, sender: msg.sender});
+            versions[name][major][minor][patch] = Version({
+                a: a,
+                abi: abi,
+                sender: msg.sender
+            });
         }
     }
 
