@@ -18,19 +18,24 @@ function LiveLibs(web3, environment) {
   // To provide direct access to the contract
   this._contract = _contract;
 
-  this.get = function(libName) {
+  this.get = function(libName, version) {
     var contract = _contract();
 
-    var rawVersions = contract.getVersions(libName);
-    if (rawVersions.length == 0) return;
+    if (version) {
+      version = parseVersion(version);
+    } else {
+      var rawVersions = contract.getVersions(libName);
+      if (rawVersions.length == 0) return;
+      var latestRaw = Math.max.apply(null, rawVersions);
+      version = calcVersion(latestRaw);
+    }
 
-    var latestRaw = Math.max.apply(null, rawVersions);
-    var v = parseVersion(latestRaw);
+    var rawLibData = contract.get(libName, version.major, version.minor, version.patch);
 
-    var rawLibData = contract.get(libName, v.major, v.minor, v.patch);
+    if (blankAddress(rawLibData[0])) return;
 
     return {
-      version: v.string,
+      version: version.string,
       address: rawLibData[0],
       abi: rawLibData[1],
       abstractSource: function() { return generateAbstractLib(libName, rawLibData[1]); }
@@ -41,18 +46,18 @@ function LiveLibs(web3, environment) {
     web3.eth.defaultAccount = web3.eth.coinbase;
 
     return new Promise(function(resolve, reject) {
-      var versionData;
+      var parsedVersion;
       if (version) {
-        versionData = version.split('.');
+        parsedVersion = parseVersion(version);
       } else {
         reject('No version specified for '+libName);
       }
 
       _contract().register(
         libName,
-        versionData[0],
-        versionData[1],
-        versionData[2],
+        parsedVersion.major,
+        parsedVersion.minor,
+        parsedVersion.patch,
         address,
         abiString,
         {value: 0, gas: 2000000}, // TODO: need to estimate this
@@ -185,7 +190,7 @@ function LiveLibs(web3, environment) {
       var plainName = web3.toAscii(rawName).replace(/\0/g, '');
       console.log("Pulling " + plainName);
       contractInstance.getVersions(plainName).forEach(function(rawVersion) {
-        var v = parseVersion(rawVersion);
+        var v = calcVersion(rawVersion);
         var libData = contractInstance.get(plainName, v.major, v.minor, v.patch);
 
         dataToStore[plainName] = {
@@ -199,11 +204,16 @@ function LiveLibs(web3, environment) {
     return dataToStore;
   }
 
-  function parseVersion(raw) {
-    var major = Math.floor(raw / 1000000);
-    var minor = Math.floor((raw % 1000000) / 1000);
-    var patch = raw % 1000;
+  function calcVersion(number) {
+    var major = Math.floor(number / 1000000);
+    var minor = Math.floor((number % 1000000) / 1000);
+    var patch = number % 1000;
     return {major: major, minor: minor, patch: patch, string: major+'.'+minor+'.'+patch};
+  }
+
+  function parseVersion(string) {
+    var parts = string.split('.');
+    return {major: parts[0], minor: parts[1], patch: parts[2], string: string};
   }
 
   function ensureHiddenDirectory() {
@@ -214,6 +224,10 @@ function LiveLibs(web3, environment) {
   function parseNetworkConfig() {
     var jsonString = fs.readFileSync('./networks.json');
     return JSON.parse(jsonString);
+  }
+
+  function blankAddress(address) {
+    return address == '0x0000000000000000000000000000000000000000'
   }
 }
 module.exports = LiveLibs;

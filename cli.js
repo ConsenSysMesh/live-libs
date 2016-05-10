@@ -20,7 +20,8 @@ var cmd = argv._[0];
 
 if (cmd == "get") {
   var libName = argv._[1];
-  var libInfo = liveLibs.get(libName);
+  var version = argv.v || argv.version;
+  var libInfo = liveLibs.get(libName, version);
   if (libInfo) {
     console.log('Version:');
     console.log(libInfo.version);
@@ -31,7 +32,9 @@ if (cmd == "get") {
     console.log('Abstract source:');
     console.log(libInfo.abstractSource());
   } else {
-    console.log(libName+' is not registered on the '+env+' live-libs instance.');
+    var vString = '';
+    if (version) vString = ' '+version;
+    console.log(libName+vString+' is not registered on the '+env+' live-libs instance.');
   }
 }
 

@@ -32,11 +32,11 @@ __Note__: If you restart your testrpc server, you'll need to re-deploy live-libs
 
 It's important to note that live-libs does not store source code, but it does store a library's [ABI](https://github.com/ethereum/wiki/wiki/Ethereum-Contract-ABI). In order to compile contracts that use live-libs, you'll need to provide the [library interface](https://github.com/ethereum/wiki/wiki/Solidity-Features#interface-contracts) to the compiler.
 
-__Note__: Only the latest version of the specified library is returned. We will support specific version lookups soon.
+__Note__: If you don't specify the `--version`, the latest version is used.
 
 From the command line:
 
-    $ live-libs get LibName --env testrpc # or morden or live
+    $ live-libs get LibName [--version 3.5.8] --env testrpc # or morden or live
     Version:
     3.5.8
     Address:
@@ -54,7 +54,8 @@ Via Javascript:
     var LiveLibs = require('live-libs');
     var liveLibs = new LiveLibs(web3, env);
     var libName = "Foo";
-    var libInfo = liveLibs.get(libName);
+    var version = "3.5.8"; // optional
+    var libInfo = liveLibs.get(libName, version);
     console.log(libInfo.version);
     console.log(libInfo.address);
     console.log(libInfo.abi);
