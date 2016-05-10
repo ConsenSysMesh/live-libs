@@ -1,14 +1,9 @@
-var VERSION = require('./package.json').version;
-
 var fs = require('fs');
 
-var compiler = require('./lib/compiler');
 var generateAbstractLib = require('./lib/generate');
-var deployer = require('./lib/deployer');
-
-var dataDirPath = process.env.HOME+'/.live-libs/';
-var dataFilePath = dataDirPath+'download-data.json';
-var testRpcAddress = dataDirPath+'testrpc-address.txt';
+var migration = require('./lib/migration');
+var versionUtils = require('./lib/version-utils');
+var fileUtils = require('./lib/file-utils');
 
 function LiveLibs(web3, environment) {
 
@@ -22,12 +17,10 @@ function LiveLibs(web3, environment) {
     var contract = _contract();
 
     if (version) {
-      version = parseVersion(version);
+      version = versionUtils.parse(version);
     } else {
-      var rawVersions = contract.getVersions(libName);
-      if (rawVersions.length == 0) return;
-      var latestRaw = Math.max.apply(null, rawVersions);
-      version = calcVersion(latestRaw);
+      version = versionUtils.latest(contract, libName);
+      if (!version) return;
     }
 
     var rawLibData = contract.get(libName, version.major, version.minor, version.patch);
@@ -48,7 +41,7 @@ function LiveLibs(web3, environment) {
     return new Promise(function(resolve, reject) {
       var parsedVersion;
       if (version) {
-        parsedVersion = parseVersion(version);
+        parsedVersion = versionUtils.parse(version);
       } else {
         reject('No version specified for '+libName);
       }
@@ -90,47 +83,11 @@ function LiveLibs(web3, environment) {
   this.register = register; 
 
   this.downloadData = function() {
-    ensureHiddenDirectory();
-    var dataToStore = extractRegistryData(_contract(), web3);
-    if (fs.existsSync(dataFilePath))
-      fs.unlinkSync(dataFilePath);
-    console.log("Writing data");
-    fs.writeFileSync(dataFilePath, JSON.stringify(dataToStore));
+    migration.downloadData(_contract(), web3);
   }
 
   this.deploy = function() {
-    web3.eth.defaultAccount = web3.eth.coinbase;
-
-    return deployLiveLibContract(web3).then(function() {
-      if (!fs.existsSync(dataFilePath))
-        return Promise.resolve();
-      
-      var data = fs.readFileSync(dataFilePath);
-      var jsonData = JSON.parse(data);
-      var promises = [];
-
-      Object.keys(jsonData).forEach(function(libName) {
-        // Skip LiveLibs, since we already deployed and registered it
-        if (libName == 'LiveLibs') return;
-        console.log("Deploying "+libName);
-        promises.push(
-          new Promise(function(resolve, reject) {
-            deployer.deployLibCode(web3, libName, jsonData[libName], function(error, contract) {
-              if (error) {
-                console.error('Problem deploying '+libName+': '+error);
-                reject(error);
-              } else {
-                resolve(contract);
-              }
-            });
-          }).then(function(contract) {
-            return register(libName, jsonData[libName].version, contract.address, JSON.stringify(jsonData[libName].abi));
-          })
-        );
-      });
-
-      return Promise.all(promises);
-    });
+    return migration.deploy(register, web3, environment);
   };
 
   function contractFor(web3, environment) {
@@ -152,73 +109,12 @@ function LiveLibs(web3, environment) {
   }
 
   function findTestRPC(web3, contract) {
-    if (fs.existsSync(testRpcAddress)) {
-      var address = fs.readFileSync(testRpcAddress, 'utf8');
+    if (fs.existsSync(fileUtils.testRpcAddress)) {
+      var address = fs.readFileSync(fileUtils.testRpcAddress, 'utf8');
       var contractCode = web3.eth.getCode(address);
       if (contractCode != '0x0')
         return contract.at(address);
     }
-  }
-
-  function deployLiveLibContract(web3) {
-    var source = fs.readFileSync('./contracts.sol', 'utf8');
-    var output = compiler.compile(source, 'LiveLibs');
-
-    return new Promise(function(resolve, reject) {
-      deployer.deploy(web3, 'LiveLibs', output.abi, output.code, function(err, contract) {
-        if (err) {
-          console.log(err);
-          reject(err);
-        }
-
-        if (environment == "testrpc") {
-          ensureHiddenDirectory();
-          fs.writeFileSync(testRpcAddress, contract.address);
-          console.log('Stored contract address.');
-        }
-
-        resolve(contract);
-      });
-    }).then(function(contract) {
-      return register('LiveLibs', VERSION, contract.address, JSON.stringify(contract.abi));
-    });
-  }
-
-  function extractRegistryData(contractInstance, web3) {
-    var dataToStore = {};
-    contractInstance.list().forEach(function(rawName) {
-      var plainName = web3.toAscii(rawName).replace(/\0/g, '');
-      console.log("Pulling " + plainName);
-      contractInstance.getVersions(plainName).forEach(function(rawVersion) {
-        var v = calcVersion(rawVersion);
-        var libData = contractInstance.get(plainName, v.major, v.minor, v.patch);
-
-        dataToStore[plainName] = {
-          version: v.string,
-          address: libData[0],
-          abi: JSON.parse(libData[1]),
-          code: web3.eth.getCode(libData[0])
-        };
-      });
-    });
-    return dataToStore;
-  }
-
-  function calcVersion(number) {
-    var major = Math.floor(number / 1000000);
-    var minor = Math.floor((number % 1000000) / 1000);
-    var patch = number % 1000;
-    return {major: major, minor: minor, patch: patch, string: major+'.'+minor+'.'+patch};
-  }
-
-  function parseVersion(string) {
-    var parts = string.split('.');
-    return {major: parts[0], minor: parts[1], patch: parts[2], string: string};
-  }
-
-  function ensureHiddenDirectory() {
-    if (!fs.existsSync(dataDirPath))
-      fs.mkdirSync(dataDirPath);
   }
 
   function parseNetworkConfig() {

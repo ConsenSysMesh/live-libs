@@ -19,7 +19,7 @@ testHelper.deployAndRun(function(liveLibs) {
       var libName = 'bar';
       var address = '0xcd2a3d9f938e13cd947ec05abc7fe734df8dd826';
       liveLibs.register(libName, '0.1.3', address, '[]').then(function() {
-        liveLibs.register(libName, '0.1.2', address, '[]')
+        return liveLibs.register(libName, '0.1.2', address, '[]')
       }).then(function() {
 
         var libInfo = liveLibs.get(libName, '0.1.2');

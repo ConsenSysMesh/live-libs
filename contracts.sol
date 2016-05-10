@@ -9,6 +9,9 @@ contract LiveLibs {
 
     //       name                major            minor             patch
     mapping (bytes32 => mapping (uint8 => mapping(uint8 => mapping (uint8 => Version)))) public versions;
+
+    // Allows people to grab all the versions for a specific lib.
+    // The version is stored as a single number.
     mapping (bytes32 => uint[]) public versionMap;
     
     function register(bytes32 name, uint8 major, uint8 minor, uint8 patch, address a, string abi) {

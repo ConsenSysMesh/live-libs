@@ -1,4 +1,3 @@
-* Implement lib version lookups
 * Implement lib testing
 * We may be able to replace all the env passing if we can come up with a good auto-detect environment method (just try the stored addresses, otherwise assume testrpc) /ht @karlfloersch
 * Switch all web3 calls to async so we can use testrpc more efficiently
