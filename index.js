@@ -113,7 +113,7 @@ function LiveLibs(web3) {
   }
 
   function findTestRPCInstance(contract) {
-    var address, instance;
+    var address;
 
     if (fs.existsSync(fileUtils.testRpcAddress))
       address = fs.readFileSync(fileUtils.testRpcAddress, 'utf8');
@@ -122,9 +122,8 @@ function LiveLibs(web3) {
     if (!liveAddress(address))
       return console.error('Contract not found for testrpc!');
 
-    instance = contract.at(address);
+    var instance = contract.at(address);
     instance.env = 'testrpc';
-
     return instance;
   }
 
@@ -142,4 +141,5 @@ function LiveLibs(web3) {
     return address == '0x0000000000000000000000000000000000000000';
   }
 }
+
 module.exports = LiveLibs;

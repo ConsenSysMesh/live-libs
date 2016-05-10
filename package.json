@@ -18,7 +18,7 @@
     "live-libs": "./cli.js"
   },
   "scripts": {
-    "test": "./node_modules/.bin/mocha --delay --timeout 5000"
+    "test": "mocha --delay --timeout 5000"
   },
   "repository": {
     "type": "git",
