@@ -1,7 +1,7 @@
 {
   "name": "live-libs",
   "namespace": "consensys",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "Live Libs - Providing reusable Solidity libraries that are live on the Ethereum blockchain.",
   "dependencies": {
     "solc": "^0.3.1-1",
