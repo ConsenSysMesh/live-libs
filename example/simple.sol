@@ -1,4 +1,5 @@
-import "Math.live";
+// Hook into compilation process to resolve this import correctly
+import "Math";
 
 contract simple {
     uint public x;

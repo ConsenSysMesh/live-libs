@@ -14,7 +14,7 @@ You will need to be connected to an Ethereum network (testrpc, morden, live, etc
 
 It's important to note that live-libs does not store source code, but it does store a library's [ABI](https://github.com/ethereum/wiki/wiki/Ethereum-Contract-ABI). In order to compile contracts that use live-libs, you'll need to provide the [library interface](https://github.com/ethereum/wiki/wiki/Solidity-Features#interface-contracts) to the compiler.
 
-__Note__: If you don't specify the `--version`, the latest version is used.
+__Note__: If you don't specify the version, the latest version of the library is used.
 
 From the command line:
 
