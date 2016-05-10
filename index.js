@@ -34,7 +34,7 @@ function LiveLibs(web3) {
     };
   };
 
-  function register(libName, version, address, abiString) {
+  this.register = function(libName, version, address, abiString) {
     web3.eth.defaultAccount = web3.eth.coinbase;
 
     return new Promise(function(resolve, reject) {
@@ -78,21 +78,14 @@ function LiveLibs(web3) {
       });
     });
   };
-  // Defined as a named function so that it can be called privately
-  this.register = register; 
 
   this.downloadData = function() {
     migration.downloadData(findContract(), web3);
-  }
-
-  this.deploy = function(onTestrpc) {
-    return migration.deploy(register, web3, onTestrpc);
   };
 
-  function liveAddress(address) {
-    var contractCode = web3.eth.getCode(address);
-    return contractCode != '0x0';
-  }
+  this.deploy = function(onTestrpc) {
+    return migration.deploy(this.register, web3, onTestrpc);
+  };
 
   function findContract() {
     if (_contract) return _contract;
@@ -129,6 +122,11 @@ function LiveLibs(web3) {
   function parseNetworkConfig() {
     var jsonString = fs.readFileSync('./networks.json');
     return JSON.parse(jsonString);
+  }
+
+  function liveAddress(address) {
+    var contractCode = web3.eth.getCode(address);
+    return contractCode != '0x0';
   }
 
   function blankAddress(address) {
