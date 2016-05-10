@@ -42,7 +42,7 @@ if (cmd == "download") {
   liveLibs.downloadData();
 }
 
-var onTestrpc = liveLibs.env == "testrpc"
+var onTestrpc = liveLibs.env == "testrpc";
 if (cmd == "deploy" && onTestrpc) {
   liveLibs.deploy(onTestrpc).catch(function(err) {
     console.log(err);
