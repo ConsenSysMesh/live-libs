@@ -94,28 +94,36 @@ function LiveLibs(web3) {
     var abi = [{"constant":true,"inputs":[{"name":"","type":"bytes32"},{"name":"","type":"uint256"}],"name":"versionMap","outputs":[{"name":"","type":"uint256"}],"type":"function"},{"constant":true,"inputs":[],"name":"list","outputs":[{"name":"","type":"bytes32[]"}],"type":"function"},{"constant":false,"inputs":[{"name":"name","type":"bytes32"},{"name":"major","type":"uint8"},{"name":"minor","type":"uint8"},{"name":"patch","type":"uint8"},{"name":"a","type":"address"},{"name":"abi","type":"string"}],"name":"register","outputs":[],"type":"function"},{"constant":true,"inputs":[{"name":"","type":"uint256"}],"name":"names","outputs":[{"name":"","type":"bytes32"}],"type":"function"},{"constant":true,"inputs":[{"name":"","type":"bytes32"},{"name":"","type":"uint8"},{"name":"","type":"uint8"},{"name":"","type":"uint8"}],"name":"versions","outputs":[{"name":"a","type":"address"},{"name":"abi","type":"string"},{"name":"sender","type":"address"}],"type":"function"},{"constant":true,"inputs":[{"name":"name","type":"bytes32"}],"name":"getVersions","outputs":[{"name":"","type":"uint256[]"}],"type":"function"},{"constant":true,"inputs":[{"name":"name","type":"bytes32"},{"name":"major","type":"uint8"},{"name":"minor","type":"uint8"},{"name":"patch","type":"uint8"}],"name":"get","outputs":[{"name":"","type":"address"},{"name":"","type":"string"}],"type":"function"}];
     var contract = web3.eth.contract(abi);
 
-    var instance;
+    return detectLiveLibsInstance(contract) || findTestRPCInstance(contract);
+  }
 
+  function detectLiveLibsInstance(contract) {
+    var instance;
     var config = parseNetworkConfig();
     Object.keys(config).forEach(function(networkName) {
+      if (instance) return;
+
       var address = config[networkName];
       if (liveAddress(address)) {
         instance = contract.at(address);
         instance.env = networkName;
       }
     });
+    return instance;
+  }
 
-    if (!instance) {
-      var address;
-      if (fs.existsSync(fileUtils.testRpcAddress))
-        address = fs.readFileSync(fileUtils.testRpcAddress, 'utf8');
-      if (!address)
-        return console.error('Contract address not found for testrpc!');
-      instance = contract.at(address);
-      if (!liveAddress(address))
-        return console.error('Contract not found for testrpc!');
-      instance.env = 'testrpc';
-    }
+  function findTestRPCInstance(contract) {
+    var address, instance;
+
+    if (fs.existsSync(fileUtils.testRpcAddress))
+      address = fs.readFileSync(fileUtils.testRpcAddress, 'utf8');
+    if (!address)
+      return console.error('Contract address not found for testrpc!');
+    if (!liveAddress(address))
+      return console.error('Contract not found for testrpc!');
+
+    instance = contract.at(address);
+    instance.env = 'testrpc';
 
     return instance;
   }
