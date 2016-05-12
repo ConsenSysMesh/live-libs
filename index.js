@@ -26,6 +26,8 @@ function LiveLibs(web3) {
 
     if (blankAddress(rawLibData[0])) return;
 
+    // rawLibData[2,3] => LibFund: threshold, totalValue
+
     return {
       version: version.string,
       address: rawLibData[0],
@@ -38,6 +40,9 @@ function LiveLibs(web3) {
     web3.eth.defaultAccount = web3.eth.coinbase;
 
     return new Promise(function(resolve, reject) {
+      if (!libName || libName.length > 32)
+        reject('Library names must be between 1-32 characters.');
+
       var parsedVersion;
       if (version) {
         parsedVersion = versionUtils.parse(version);
@@ -52,6 +57,7 @@ function LiveLibs(web3) {
         parsedVersion.patch,
         address,
         abiString,
+        0,
         {value: 0, gas: 2000000}, // TODO: need to estimate this
         function(err, txHash) {
         if (err) {
@@ -90,8 +96,8 @@ function LiveLibs(web3) {
   function findContract() {
     if (_contract) return _contract;
 
-    // TODO: maybe just provide a minimal abi, and then pull the abi from the network? (if it registers itself)
-    var abi = [{"constant":true,"inputs":[{"name":"","type":"bytes32"},{"name":"","type":"uint256"}],"name":"versionMap","outputs":[{"name":"","type":"uint256"}],"type":"function"},{"constant":true,"inputs":[],"name":"list","outputs":[{"name":"","type":"bytes32[]"}],"type":"function"},{"constant":false,"inputs":[{"name":"name","type":"bytes32"},{"name":"major","type":"uint8"},{"name":"minor","type":"uint8"},{"name":"patch","type":"uint8"},{"name":"a","type":"address"},{"name":"abi","type":"string"}],"name":"register","outputs":[],"type":"function"},{"constant":true,"inputs":[{"name":"","type":"uint256"}],"name":"names","outputs":[{"name":"","type":"bytes32"}],"type":"function"},{"constant":true,"inputs":[{"name":"","type":"bytes32"},{"name":"","type":"uint8"},{"name":"","type":"uint8"},{"name":"","type":"uint8"}],"name":"versions","outputs":[{"name":"a","type":"address"},{"name":"abi","type":"string"},{"name":"sender","type":"address"}],"type":"function"},{"constant":true,"inputs":[{"name":"name","type":"bytes32"}],"name":"getVersions","outputs":[{"name":"","type":"uint256[]"}],"type":"function"},{"constant":true,"inputs":[{"name":"name","type":"bytes32"},{"name":"major","type":"uint8"},{"name":"minor","type":"uint8"},{"name":"patch","type":"uint8"}],"name":"get","outputs":[{"name":"","type":"address"},{"name":"","type":"string"}],"type":"function"}];
+    // NOTE: before updating this file, download the latest registry from networks
+    var abi = JSON.parse(fs.readFileSync('./abis/LiveLibs.json', 'utf8'));
     var contract = web3.eth.contract(abi);
 
     return detectLiveLibsInstance(contract) || findTestRPCInstance(contract);

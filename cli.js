@@ -33,6 +33,7 @@ if (cmd == "get") {
 
 if (cmd == "register") {
   var libName = argv._[1];
+  console.log('Attempting to register '+libName+', please wait for mining.');
   liveLibs.register(libName, argv.version, argv.address, argv.abi).catch(function(err) {
     console.log(err);
   });

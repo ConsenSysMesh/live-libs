@@ -21,6 +21,20 @@ testHelper.deployAndRun(function(liveLibs) {
       }).then(done).catch(done);
     });
 
+    it('detects when name is too long', function(done) {
+      var longName = 'abcdefghijklmnopqrstuvwxyz1234567';
+      var address = '0xcd2a3d9f938e13cd947ec05abc7fe734df8dd826';
+
+      var detectedError;
+
+      liveLibs.register(longName, '0.1.2', address, '[]').catch(function(error) {
+        return error;
+      }).then(function(error) {
+        assert.isDefined(error, 'should have detected name was too long');
+      }).then(done).catch(done);
+    });
+
+
     it('gets specific versions', function(done) {
       var libName = 'bar';
       var address = '0xcd2a3d9f938e13cd947ec05abc7fe734df8dd826';
