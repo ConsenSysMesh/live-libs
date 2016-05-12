@@ -36,7 +36,7 @@ function LiveLibs(web3) {
     };
   };
 
-  this.register = function(libName, version, address, abiString) {
+  this.register = function(libName, version, address, abiString, thresholdWei) {
     web3.eth.defaultAccount = web3.eth.coinbase;
 
     return new Promise(function(resolve, reject) {
@@ -57,31 +57,42 @@ function LiveLibs(web3) {
         parsedVersion.patch,
         address,
         abiString,
-        0,
+        thresholdWei || 0,
         {value: 0, gas: 2000000}, // TODO: need to estimate this
         function(err, txHash) {
-        if (err) {
-          reject(err);
-        } else {
-          resolve(txHash);
+          if (err) {
+            reject(err);
+          } else {
+            resolve(txHash);
+          }
         }
-      });
+      );
     }).then(function(txHash) {
-      return new Promise(function(resolve, reject) {
-        var interval = setInterval(function() {
-          web3.eth.getTransactionReceipt(txHash, function(err, receipt) {
-            if (err != null) {
-              clearInterval(interval);
-              reject(err);
-            }
-            if (receipt != null) {
-              console.log('Registered '+libName+' '+version+'!');
-              resolve();
-              clearInterval(interval);
-            }
-          });
-        }, 500);
-      });
+      return txHandler(txHash, 'Registered '+libName+' '+version+'!');
+    });
+  };
+
+  this.contributeTo = function(libName, version, wei) {
+    var abi = JSON.parse(fs.readFileSync('./abis/LibFund.json', 'utf8'));
+    var contract = web3.eth.contract(abi);
+    var instance = contract.at(findContract().libFund());
+    var v = versionUtils.parse(version);
+
+    return new Promise(function(reject, resolve) {
+      instance.addTo(
+        libName,
+        v.major, v.minor, v.patch,
+        {value: wei, gas: 2000000}, // TODO: need to estimate this
+        function(err, txHash) {
+          if (err) {
+            reject(err);
+          } else {
+            resolve(txHash);
+          }
+        }
+      );
+    }).then(function(txHash) {
+      return txHandler(txHash, 'Contributed '+wei+' wei to '+libName+' '+version+'!');
     });
   };
 
@@ -94,7 +105,6 @@ function LiveLibs(web3) {
   };
 
   function findContract() {
-    if (_contract) return _contract;
 
     // NOTE: before updating this file, download the latest registry from networks
     var abi = JSON.parse(fs.readFileSync('./abis/LiveLibs.json', 'utf8'));
@@ -145,6 +155,25 @@ function LiveLibs(web3) {
 
   function blankAddress(address) {
     return address == '0x0000000000000000000000000000000000000000';
+  }
+
+  function txHandler(txHash, successMessage) {
+    return new Promise(function(resolve, reject) {
+      var interval = setInterval(function() {
+        web3.eth.getTransactionReceipt(txHash, function(err, receipt) {
+          if (err != null) {
+            clearInterval(interval);
+            reject(err);
+          }
+          if (receipt != null) {
+            console.log(successMessage);
+            resolve();
+            clearInterval(interval);
+          }
+        });
+      }, 500);
+    });
+
   }
 }
 
