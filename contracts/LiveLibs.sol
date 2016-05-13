@@ -9,13 +9,13 @@ contract LiveLibs {
     }
 
     event NewLib(bytes32 name, address owner);
-    event NewVersion(bytes32 name, uint8 major, uint8 minor, uint8 patch, uint thresholdWei);
+    event NewVersion(bytes32 name, uint major, uint minor, uint patch, uint thresholdWei);
     event OwnershipChange(bytes32 name, address oldOwner, address newOwner);
 
     bytes32[] public names;
 
-    //       name                major            minor             patch
-    mapping (bytes32 => mapping (uint8 => mapping(uint8 => mapping (uint8 => Version)))) public versions;
+    //       name                major           minor            patch
+    mapping (bytes32 => mapping (uint => mapping(uint => mapping (uint => Version)))) public versions;
 
     // Allows people to grab all the versions for a specific lib.
     // The version is stored as a single number.
@@ -37,7 +37,7 @@ contract LiveLibs {
         libFund = lf;
     }
 
-    function register(bytes32 name, uint8 major, uint8 minor, uint8 patch, address a, string abi, uint thresholdWei) {
+    function register(bytes32 name, uint major, uint minor, uint patch, address a, string abi, uint thresholdWei) {
         if (ownerMap[name] == 0) {
             ownerMap[name] = msg.sender;
             names.push(name);
@@ -66,7 +66,7 @@ contract LiveLibs {
         ownerMap[name] = newOwner;
     }
 
-    function get(bytes32 name, uint8 major, uint8 minor, uint8 patch) constant returns (address, string, uint, uint) {
+    function get(bytes32 name, uint major, uint minor, uint patch) constant returns (address, string, uint, uint) {
         Version v = versions[name][major][minor][patch];
         uint versionNum = LiveLibsUtils.toVersionNum(major, minor, patch);
         if (v.a == 0 || libFund.isLocked(name, versionNum)) return;

@@ -4,6 +4,7 @@ var generateAbstractLib = require('./lib/generate');
 var migration = require('./lib/migration');
 var versionUtils = require('./lib/version-utils');
 var fileUtils = require('./lib/file-utils');
+var ethUtils = require('./lib/eth-utils');
 
 function LiveLibs(web3, verbose) {
   var logger = getLogger(verbose);
@@ -19,20 +20,21 @@ function LiveLibs(web3, verbose) {
     if (version) {
       version = versionUtils.parse(version);
     } else {
-      version = versionUtils.latest(findContract(), libName);
-      if (!version) return;
+      version = versionUtils.latest(libName, findContract());
     }
 
-    var rawLibData = findContract().get(libName, version.major, version.minor, version.patch);
+    if (!version) return;
 
-    if (blankAddress(rawLibData[0])) return;
+    rawLibData = findContract().get(libName, version.major, version.minor, version.patch);
+
+    if (ethUtils.blankAddress(rawLibData[0])) return;
 
     return {
       version: version.string,
       address: rawLibData[0],
       abi: rawLibData[1],
-      thresholdWei: rawLibData[2],
-      totalValue: rawLibData[3],
+      thresholdWei: rawLibData[2].toString(),
+      totalValue: rawLibData[3].toString(),
       abstractSource: function() { return generateAbstractLib(libName, rawLibData[1]); }
     };
   };
@@ -69,11 +71,16 @@ function LiveLibs(web3, verbose) {
         }
       );
     }).then(function(txHash) {
-      return txHandler(txHash, 'Registered '+libName+' '+version+'!');
+      var message = 'Registered '+libName+' '+version+'!';
+      if (thresholdWei > 0)
+        message += ' Locked until '+thresholdWei+' wei contributed.';
+      return txHandler(txHash, message);
     });
   };
 
   this.contributeTo = function(libName, version, wei) {
+    web3.eth.defaultAccount = web3.eth.coinbase;
+
     var abi = JSON.parse(fs.readFileSync('./abis/LibFund.json', 'utf8'));
     var contract = web3.eth.contract(abi);
 
@@ -166,10 +173,6 @@ function LiveLibs(web3, verbose) {
   function liveAddress(address) {
     var contractCode = web3.eth.getCode(address);
     return contractCode != '0x0';
-  }
-
-  function blankAddress(address) {
-    return address == '0x0000000000000000000000000000000000000000';
   }
 
   function txHandler(txHash, successMessage) {

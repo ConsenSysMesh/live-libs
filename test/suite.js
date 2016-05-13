@@ -39,7 +39,7 @@ testHelper.deployAndRun(function(liveLibs) {
     it('unlocks funded libraries', function(done) {
 
       var libName = 'xyz';
-      var version = '0.1.2';
+      var version = '30.1.2';
       liveLibs.register(libName, version, fakeAddress, fakeAbi, 1000).then(function() {
         return liveLibs.contributeTo(libName, version, 250);
       }).then(function() {

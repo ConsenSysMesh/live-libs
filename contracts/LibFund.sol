@@ -23,11 +23,11 @@ contract LibFund {
     }
 
     function setThreshold(bytes32 name, uint versionNum, uint threshold, address author) {
+        if (author == 0) throw;
+
         // Only accept the contract owner or the library author
         if (owner != msg.sender && funds[name][versionNum].author != msg.sender)
             throw;
-
-        if (author == 0) throw;
 
         if (funds[name][versionNum].author == 0) {
             Setup(name, threshold, author);
@@ -40,7 +40,7 @@ contract LibFund {
         }
     }
     
-    function addTo(bytes32 name, uint8 major, uint8 minor, uint8 patch) {
+    function addTo(bytes32 name, uint major, uint minor, uint patch) {
         uint versionNum = LiveLibsUtils.toVersionNum(major, minor, patch);
         if (funds[name][versionNum].author == 0) throw;
 
@@ -55,5 +55,10 @@ contract LibFund {
 
     function isLocked(bytes32 name, uint versionNum) constant returns (bool) {
         return funds[name][versionNum].threshold > funds[name][versionNum].totalValue;
+    }
+
+    function get(bytes32 name, uint versionNum) constant returns(address, uint, uint) {
+        Fund f = funds[name][versionNum];
+        return (f.author, f.threshold, f.totalValue);
     }
 }

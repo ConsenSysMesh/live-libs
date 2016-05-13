@@ -8,7 +8,7 @@ Providing reusable Solidity libraries that are live on the Ethereum blockchain.
 
 ## Setting up your environment
 
-You will need to be connected to an Ethereum network (testrpc, morden, live, etc) when interacting with live-libs. Follow [these instructions](https://ethereum.gitbooks.io/frontier-guide/content/getting_a_client.html) to install an Ethereum node. The live-libs command line interface currently assumes that the Ethereum node's RPC interface is available via `localhost:8545`.
+You will need to be connected to an Ethereum network (testrpc, morden, mainnet, etc) when interacting with live-libs. Follow [these instructions](https://ethereum.gitbooks.io/frontier-guide/content/getting_a_client.html) to install an Ethereum node. The live-libs command line interface currently assumes that the Ethereum node's RPC interface is available via `localhost:8545`.
 
 ## Getting a library's information
 
@@ -50,7 +50,7 @@ From the command line:
 
 __Warning:__ There is no way to remove your library. Once it's live, it's live forever.
 
-__Warning:__ This software is under active development and the live-libs registries (morden and live) will be replaced without warning. (Other than this warning.)
+__Warning:__ This software is under active development and the live-libs registries (morden and mainnet) will be replaced without warning. (Other than this warning.)
 
 ## Setting up your testrpc environment
 

@@ -18,11 +18,15 @@ if (cmd == "get") {
   if (libInfo) {
     console.log('Version:');
     console.log(libInfo.version);
-    console.log('Address:');
+    console.log('\nUnlocks at:');
+    console.log(libInfo.thresholdWei);
+    console.log('\nContributions:');
+    console.log(libInfo.totalValue);
+    console.log('\nAddress:');
     console.log(libInfo.address);
-    console.log('ABI:');
+    console.log('\nABI:');
     console.log(libInfo.abi);
-    console.log('Abstract source:');
+    console.log('\nAbstract source:');
     console.log(libInfo.abstractSource());
   } else {
     var vString = '';
@@ -34,7 +38,15 @@ if (cmd == "get") {
 if (cmd == "register") {
   var libName = argv._[1];
   console.log('Attempting to register '+libName+', please wait for mining.');
-  liveLibs.register(libName, argv.version, argv.address, argv.abi, 0).catch(function(err) {
+  liveLibs.register(libName, argv.version, argv.address, argv.abi, argv.unlockat).catch(function(err) {
+    console.log(err);
+  });
+}
+
+if (cmd == "contribute") {
+  var libName = argv._[1];
+  console.log('Attempting to contribute to '+libName+', please wait for mining.');
+  liveLibs.contributeTo(libName, argv.version, argv.wei).catch(function(err) {
     console.log(err);
   });
 }
