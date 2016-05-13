@@ -27,12 +27,12 @@ function LiveLibs(web3, verbose) {
 
     if (blankAddress(rawLibData[0])) return;
 
-    // rawLibData[2,3] => LibFund: threshold, totalValue
-
     return {
       version: version.string,
       address: rawLibData[0],
       abi: rawLibData[1],
+      thresholdWei: rawLibData[2],
+      totalValue: rawLibData[3],
       abstractSource: function() { return generateAbstractLib(libName, rawLibData[1]); }
     };
   };
@@ -42,13 +42,13 @@ function LiveLibs(web3, verbose) {
 
     return new Promise(function(resolve, reject) {
       if (!libName || libName.length > 32)
-        reject('Library names must be between 1-32 characters.');
+        return reject('Library names must be between 1-32 characters.');
 
       var parsedVersion;
       if (version) {
         parsedVersion = versionUtils.parse(version);
       } else {
-        reject('No version specified for '+libName);
+        return reject('No version specified for '+libName);
       }
 
       findContract().register(
@@ -76,10 +76,15 @@ function LiveLibs(web3, verbose) {
   this.contributeTo = function(libName, version, wei) {
     var abi = JSON.parse(fs.readFileSync('./abis/LibFund.json', 'utf8'));
     var contract = web3.eth.contract(abi);
-    var instance = contract.at(findContract().libFund());
-    var v = versionUtils.parse(version);
 
-    return new Promise(function(reject, resolve) {
+    return new Promise(function(resolve, reject) {
+      var libFundAddress = findContract().libFund();
+      if (!liveAddress(libFundAddress))
+        return reject('LibFund instance not found!');
+
+      var instance = contract.at(libFundAddress);
+      var v = versionUtils.parse(version);
+
       instance.addTo(
         libName,
         v.major, v.minor, v.patch,
@@ -95,6 +100,15 @@ function LiveLibs(web3, verbose) {
     }).then(function(txHash) {
       return txHandler(txHash, 'Contributed '+wei+' wei to '+libName+' '+version+'!');
     });
+  };
+
+  this.allNames = function() {
+    var names = [];
+    findContract().allNames().forEach(function(rawName) {
+      var plainName = web3.toAscii(rawName).replace(/\0/g, '');
+      names.push(plainName);
+    });
+    return names;
   };
 
   this.downloadData = function() {
@@ -168,8 +182,8 @@ function LiveLibs(web3, verbose) {
           }
           if (receipt != null) {
             logger.log(successMessage);
-            resolve();
             clearInterval(interval);
+            resolve();
           }
         });
       }, 500);

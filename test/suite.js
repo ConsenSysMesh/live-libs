@@ -4,6 +4,7 @@ var assert = require("chai").assert;
 testHelper.deployAndRun(function(liveLibs) {
   describe('Registry', function() {
     var fakeAddress = '0xcd2a3d9f938e13cd947ec05abc7fe734df8dd826';
+    var fakeAbi = '[]';
 
     it('gracefully handles a get miss', function() {
       var libName = 'baz';
@@ -13,18 +14,21 @@ testHelper.deployAndRun(function(liveLibs) {
 
     it('gets what it sets', function(done) {
       var libName = 'foo';
-      liveLibs.register(libName, '0.1.2', fakeAddress, '[]').then(function() {
+      liveLibs.register(libName, '0.1.2', fakeAddress, fakeAbi, 0).then(function() {
 
         var libInfo = liveLibs.get(libName);
         assert.equal(libInfo.address, fakeAddress);
         assert.equal(libInfo.version, '0.1.2');
+        assert.equal(libInfo.abi, fakeAbi);
+        assert.equal(libInfo.thresholdWei, 0);
+        assert.equal(libInfo.totalValue, 0);
 
       }).then(done).catch(done);
     });
 
     it('locks unfunded libraries', function(done) {
       var libName = 'abc';
-      liveLibs.register(libName, '0.1.2', fakeAddress, '[]', 1000).then(function() {
+      liveLibs.register(libName, '0.1.2', fakeAddress, fakeAbi, 1000).then(function() {
 
         var libInfo = liveLibs.get(libName);
         assert.equal(libInfo, undefined);
@@ -33,35 +37,38 @@ testHelper.deployAndRun(function(liveLibs) {
     });
 
     it('unlocks funded libraries', function(done) {
-      var doneOverride = function() {done();};
 
       var libName = 'xyz';
-      liveLibs.register(libName, '0.1.2', fakeAddress, '[]', 1000).then(function() {
-        return liveLibs.contributeTo(libName, '0.1.2', 1000);
+      var version = '0.1.2';
+      liveLibs.register(libName, version, fakeAddress, fakeAbi, 1000).then(function() {
+        return liveLibs.contributeTo(libName, version, 250);
       }).then(function() {
-
+        return liveLibs.contributeTo(libName, version, 750);
+      }).then(function() {
         var libInfo = liveLibs.get(libName);
         assert.isDefined(libInfo);
         assert.equal(libInfo.address, fakeAddress);
-        assert.equal(libInfo.version, '0.1.2');
+        assert.equal(libInfo.totalValue, 1000);
 
-      }).then(doneOverride).catch(doneOverride);
+      }).then(done).catch(done);
     });
 
     it('detects when name is too long', function(done) {
-      var longName = 'abcdefghijklmnopqrstuvwxyz1234567';
+      // names can only be 32 bytes
+      var longName  = 'abcdefghijklmnopqrstuvwxyz1234567';
+      var truncName = 'abcdefghijklmnopqrstuvwxyz123456';
 
-      var detectedError;
-
-      liveLibs.register(longName, '0.1.2', fakeAddress, '[]').catch(function(error) {
+      liveLibs.register(longName, '0.1.2', fakeAddress, fakeAbi).catch(function(error) {
         assert.isDefined(error, 'should have detected name was too long');
+        assert.isUndefined(liveLibs.get(truncName));
+        assert.notInclude(liveLibs.allNames(), truncName);
       }).then(done).catch(done);
     });
 
     it('gets specific versions', function(done) {
       var libName = 'bar';
-      liveLibs.register(libName, '0.1.3', fakeAddress, '[]').then(function() {
-        return liveLibs.register(libName, '0.1.2', fakeAddress, '[]')
+      liveLibs.register(libName, '0.1.3', fakeAddress, fakeAbi).then(function() {
+        return liveLibs.register(libName, '0.1.2', fakeAddress, fakeAbi);
       }).then(function() {
 
         var libInfo = liveLibs.get(libName, '0.1.2');
