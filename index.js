@@ -85,6 +85,9 @@ function LiveLibs(web3, verbose) {
     var contract = web3.eth.contract(abi);
 
     return new Promise(function(resolve, reject) {
+      if (!wei)
+        return reject('No wei amount specified');
+
       var libFundAddress = findContract().libFund();
       if (!liveAddress(libFundAddress))
         return reject('LibFund instance not found!');
