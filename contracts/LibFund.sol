@@ -35,6 +35,7 @@ contract LibFund {
             funds[name][versionNum].author = author;
 
         } else {
+            // TODO: There is no interface that allows anyone to reset threshold
             Update(name, threshold);
             funds[name][versionNum].threshold = threshold;
         }
@@ -47,9 +48,6 @@ contract LibFund {
         funds[name][versionNum].totalValue += msg.value;
         FundsAdded(name, msg.sender, msg.value, funds[name][versionNum].totalValue);
 
-        // TODO: Just let the funds flow through?
-        // Or hold it until the threshold is met?
-        // Then we would need to have an end date and refund. Bletch.
         funds[name][versionNum].author.send(msg.value);
     }
 

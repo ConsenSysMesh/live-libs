@@ -1,4 +1,5 @@
-* Document LibFund in README
+* Document LibFund in README, then ping standard-contracts
+* Auto-register LiveLibsUtils on deploy
 * Switch all web3 calls to async so we can use testrpc more efficiently
 * Script for updating newly-deployed live-lib contract with existing network data (useful for when the live-lib contract is updated)
 * Script for updating morden live-lib contract with live network data
