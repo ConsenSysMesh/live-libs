@@ -7,7 +7,7 @@ var web3 = new Web3();
 web3.setProvider(new web3.providers.HttpProvider('http://0.0.0.0:8545'));
 
 var LiveLibs = require('./index');
-var liveLibs = new LiveLibs(web3);
+var liveLibs = new LiveLibs(web3, true);
 
 var cmd = argv._[0];
 

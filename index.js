@@ -5,7 +5,8 @@ var migration = require('./lib/migration');
 var versionUtils = require('./lib/version-utils');
 var fileUtils = require('./lib/file-utils');
 
-function LiveLibs(web3) {
+function LiveLibs(web3, verbose) {
+  var logger = getLogger(verbose);
 
   var _contract = findContract();
   if (_contract) {
@@ -134,9 +135,9 @@ function LiveLibs(web3) {
     if (fs.existsSync(fileUtils.testRpcAddress))
       address = fs.readFileSync(fileUtils.testRpcAddress, 'utf8');
     if (!address)
-      return console.error('Contract address not found for testrpc!');
+      return logger.error('Contract address not found for testrpc!');
     if (!liveAddress(address))
-      return console.error('Contract not found for testrpc!');
+      return logger.error('Contract not found for testrpc!');
 
     var instance = contract.at(address);
     instance.env = 'testrpc';
@@ -166,14 +167,22 @@ function LiveLibs(web3) {
             reject(err);
           }
           if (receipt != null) {
-            console.log(successMessage);
+            logger.log(successMessage);
             resolve();
             clearInterval(interval);
           }
         });
       }, 500);
     });
+  }
 
+  function getLogger(verbose) {
+    if (verbose) {
+      return console;
+    } else {
+      var noop = function() {};
+      return { log: noop, error: noop };
+    }
   }
 }
 
