@@ -73,13 +73,15 @@ __Note__: If you restart your testrpc server, you'll need to re-deploy live-libs
 
 ## Funding your library
 
-Library authors can receive ether for registering their libraries with live-libs. When an author registers a library, they can optionally pass in a `--unlockat` flag, followed by a number of wei. For example:
+Library authors can receive ether for registering their libraries with live-libs. When an author registers a library, they can optionally pass in a `--unlockat` flag, followed by a number of wei. This will "lock" this specified version of the library until the specified amount of wei has been contributed. For example:
 
-    live-libs register YourLibName --version 3.5.8 --address 0x45e2... --abi '[...]' --unlockat 10000000
+    $ live-libs register YourLibName --version 3.5.8 --address 0x45e2... --abi '[...]' --unlockat 10000000
 
-If someone wanted to contribute ether in order to unlock a version of a library, they can:
+This will register `YourLibName 3.5.8` in live-libs, but when you look it up, it will not be available. To unlock it, people need to contribute ether, which gets immediatly redirected to the Ethereum account of the person that registered this version.
 
-    live-libs contribute LibName --version 3.5.8 --wei 200000
+If someone wants to contribute ether in order to unlock a version of a library, they can:
+
+    $ live-libs contribute LibName --version 3.5.8 --wei 200000
 
 __Note__: The idea for this came from Vitalik's story at 2:30 of [this podcast](http://futurethinkers.org/vitalik-buterin-ethereum-decentralized-future/).
 

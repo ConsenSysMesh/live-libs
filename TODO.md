@@ -1,4 +1,4 @@
-* Document LibFund in README, then ping standard-contracts
+* Detect difference between unregistered and locked
 * Auto-register LiveLibsUtils on deploy
 * Switch all web3 calls to async so we can use testrpc more efficiently
 * Script for updating newly-deployed live-lib contract with existing network data (useful for when the live-libs contract is updated)
