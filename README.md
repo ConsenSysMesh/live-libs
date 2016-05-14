@@ -8,7 +8,7 @@ Providing reusable Solidity libraries that are live on the Ethereum blockchain.
 
 ## Setting up your environment
 
-You will need to be connected to an Ethereum network (testrpc, morden, mainnet, etc) when interacting with live-libs. Follow [these instructions](https://ethereum.gitbooks.io/frontier-guide/content/getting_a_client.html) to install an Ethereum node. The live-libs command line interface currently assumes that the Ethereum node's RPC interface is available via `localhost:8545`.
+You will need to be connected to an Ethereum network (testrpc, morden, mainnet, etc) when interacting with live-libs. Follow [these instructions](https://ethereum.gitbooks.io/frontier-guide/content/getting_a_client.html) to install an Ethereum node. The live-libs command line interface defaults to `http://localhost:8545` to reach the Ethereum node's RPC interface. You can override this with `--rpcurl https://example:8765`
 
 ## Getting a library's information
 

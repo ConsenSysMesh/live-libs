@@ -4,7 +4,9 @@ var argv = require('yargs').option('address', {type: 'string'}).argv;
 
 var Web3 = require('web3');
 var web3 = new Web3();
-web3.setProvider(new web3.providers.HttpProvider('http://0.0.0.0:8545'));
+
+var rpcURL = argv.rpcurl || 'http://0.0.0.0:8545';
+web3.setProvider(new web3.providers.HttpProvider(rpcURL));
 
 var LiveLibs = require('./index');
 var liveLibs = new LiveLibs(web3, true);
