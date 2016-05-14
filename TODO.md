@@ -1,4 +1,3 @@
-* Parameterize the RPC url, test against https://morden.infura.io:8545
 * Document LibFund in README, then ping standard-contracts
 * Auto-register LiveLibsUtils on deploy
 * Switch all web3 calls to async so we can use testrpc more efficiently

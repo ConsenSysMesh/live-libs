@@ -21,10 +21,13 @@ From the command line:
     $ live-libs get LibName [--version 3.5.8]
     Version:
     3.5.8
+
     Address:
     0x3f4845...
+
     ABI:
     [{"constant":false,"inputs":...}]
+
     Abstract source:
     library LibName {...}
 
@@ -50,7 +53,7 @@ From the command line:
 
 __Warning:__ There is no way to remove your library. Once it's live, it's live forever.
 
-__Warning:__ This software is under active development and the live-libs registries (morden and mainnet) will be replaced without warning. (Other than this warning.)
+__Warning:__ This software is under active development and the live-libs registries (morden and mainnet) will be abandoned without warning. (Other than this warning.)
 
 ## Setting up your testrpc environment
 
@@ -67,6 +70,18 @@ From the command line:
     $ live-libs deploy
 
 __Note__: If you restart your testrpc server, you'll need to re-deploy live-libs, but you won't need to re-download the data.
+
+## Funding your library
+
+Library authors can receive ether for registering their libraries with live-libs. When an author registers a library, they can optionally pass in a `--unlockat` flag, followed by a number of wei. For example:
+
+    live-libs register YourLibName --version 3.5.8 --address 0x45e2... --abi '[...]' --unlockat 10000000
+
+If someone wanted to contribute ether in order to unlock a version of a library, they can:
+
+    live-libs contribute LibName --version 3.5.8 --wei 200000
+
+__Note__: The idea for this came from Vitalik's story at 2:30 of [this podcast](http://futurethinkers.org/vitalik-buterin-ethereum-decentralized-future/).
 
 ## Where is this headed?
 

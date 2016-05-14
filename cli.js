@@ -20,16 +20,18 @@ if (cmd == "get") {
   if (libInfo) {
     console.log('Version:');
     console.log(libInfo.version);
-    console.log('\nUnlocks at:');
-    console.log(libInfo.thresholdWei);
-    console.log('\nContributions:');
-    console.log(libInfo.totalValue);
     console.log('\nAddress:');
     console.log(libInfo.address);
     console.log('\nABI:');
     console.log(libInfo.abi);
     console.log('\nAbstract source:');
     console.log(libInfo.abstractSource());
+    if (libInfo.thresholdWei > 0) {
+      console.log('\nUnlocked at (wei):');
+      console.log(libInfo.thresholdWei);
+    }
+    console.log('\nContributions (wei):');
+    console.log(libInfo.totalValue);
   } else {
     var vString = '';
     if (version) vString = ' '+version;
