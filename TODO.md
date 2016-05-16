@@ -1,4 +1,5 @@
 * Detect difference between unregistered and locked
+* Currently the gas-costing method require the account to be unlocked in geth, look into [this](https://github.com/ethereum/web3.js/issues/388#issuecomment-219227190) to allow people to auth via the script.
 * Auto-register LiveLibsUtils on deploy
 * Switch all web3 calls to async so we can use testrpc more efficiently
 * Script for updating newly-deployed live-lib contract with existing network data (useful for when the live-libs contract is updated)
