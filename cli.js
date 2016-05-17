@@ -12,31 +12,32 @@ var LiveLibs = require('./index');
 var liveLibs = new LiveLibs(web3, true);
 
 var cmd = argv._[0];
+var version = argv.v || argv.version;
 
 if (cmd == "get") {
   var libName = argv._[1];
-  var version = argv.v || argv.version;
-  var libInfo = liveLibs.get(libName, version);
-  if (libInfo) {
-    console.log('Version:');
-    console.log(libInfo.version);
-    console.log('\nAddress:');
-    console.log(libInfo.address);
-    console.log('\nABI:');
-    console.log(libInfo.abi);
-    console.log('\nAbstract source:');
-    console.log(libInfo.abstractSource());
-    if (libInfo.thresholdWei > 0) {
-      console.log('\nUnlocked at (wei):');
-      console.log(libInfo.thresholdWei);
-    }
-    console.log('\nContributions (wei):');
-    console.log(libInfo.totalValue);
-  } else {
-    var vString = '';
-    if (version) vString = ' '+version;
-    console.log(libName+vString+' is not registered on the '+liveLibs.env+' live-libs instance.');
+
+  try {
+    var libInfo = liveLibs.get(libName, version);
+  } catch (err) {
+    console.error(err.toString());
+    return;
   }
+
+  console.log('Version:');
+  console.log(libInfo.version);
+  console.log('\nAddress:');
+  console.log(libInfo.address);
+  console.log('\nABI:');
+  console.log(libInfo.abi);
+  console.log('\nAbstract source:');
+  console.log(libInfo.abstractSource());
+  if (libInfo.thresholdWei > 0) {
+    console.log('\nUnlocked at (wei):');
+    console.log(libInfo.thresholdWei);
+  }
+  console.log('\nContributions (wei):');
+  console.log(libInfo.totalValue);
 }
 
 if (cmd == "register") {
@@ -50,7 +51,7 @@ if (cmd == "register") {
 if (cmd == "contribute") {
   var libName = argv._[1];
   console.log('Attempting to contribute to '+libName+', please wait for mining.');
-  liveLibs.contributeTo(libName, argv.version, argv.wei).catch(function(err) {
+  liveLibs.contributeTo(libName, version, argv.wei).catch(function(err) {
     console.log(err);
   });
 }
@@ -67,3 +68,4 @@ if (cmd == "deploy" && onTestrpc) {
 }
 
 // TODO: Handle case where cmd matches nothing
+// TODO: Handle case where extra/ignored stuff is passed in (such as when a flag is forgotten)

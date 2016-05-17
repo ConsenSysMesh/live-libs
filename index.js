@@ -17,20 +17,27 @@ function LiveLibs(web3, verbose) {
   }
 
   this.get = function(libName, version) {
+    var v;
     if (version) {
-      version = versionUtils.parse(version);
+      v = versionUtils.parse(version);
     } else {
-      version = versionUtils.latest(libName, findContract());
+      v = versionUtils.latest(libName, findContract());
     }
 
-    if (!version) return;
+    if (!v) throw(Error('No versions of '+libName+' found'));
 
-    rawLibData = findContract().get(libName, version.major, version.minor, version.patch);
+    rawLibData = findContract().get(libName, v.major, v.minor, v.patch);
 
-    if (ethUtils.blankAddress(rawLibData[0])) return;
+    if (ethUtils.blankAddress(rawLibData[0])) {
+      if (version && versionUtils.exists(libName, version, findContract())) {
+        // If they went to the trouble of specifying a version, let's see if it's locked
+        throw(Error(libName+' is locked'));
+      }
+      throw(Error(libName+' '+version+' is not registered'));
+    }
 
     return {
-      version: version.string,
+      version: v.string,
       address: rawLibData[0],
       abi: rawLibData[1],
       thresholdWei: rawLibData[2].toString(),

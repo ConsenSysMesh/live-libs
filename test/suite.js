@@ -7,9 +7,7 @@ testHelper.deployAndRun(function(liveLibs) {
     var fakeAbi = '[]';
 
     it('gracefully handles a get miss', function() {
-      var libName = 'baz';
-      var libInfo = liveLibs.get(libName);
-      assert.equal(libInfo, undefined);
+      assert.throws(function() { liveLibs.get('baz'); });
     });
 
     it('gets what it sets', function(done) {
@@ -30,8 +28,7 @@ testHelper.deployAndRun(function(liveLibs) {
       var libName = 'abc';
       liveLibs.register(libName, '0.1.2', fakeAddress, fakeAbi, 1000).then(function() {
 
-        var libInfo = liveLibs.get(libName);
-        assert.equal(libInfo, undefined);
+        assert.throws(function() { liveLibs.get(libName); });
 
       }).then(done).catch(done);
     });
@@ -60,7 +57,7 @@ testHelper.deployAndRun(function(liveLibs) {
 
       liveLibs.register(longName, '0.1.2', fakeAddress, fakeAbi).catch(function(error) {
         assert.isDefined(error, 'should have detected name was too long');
-        assert.isUndefined(liveLibs.get(truncName));
+        assert.throws(function() { liveLibs.get(truncName); });
         assert.notInclude(liveLibs.allNames(), truncName);
       }).then(done).catch(done);
     });
