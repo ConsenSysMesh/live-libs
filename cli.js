@@ -12,11 +12,21 @@ var LiveLibs = require('./index');
 var liveLibs = new LiveLibs(web3, true);
 
 var cmd = argv._[0];
+var libName = argv._[1];
 var version = argv.v || argv.version;
 
-if (cmd == "get") {
-  var libName = argv._[1];
+function toDateTimeString(time) {
+  var date = new Date(time*1000);
+  var y = date.getUTCFullYear();
+  var m = date.getUTCMonth();
+  var d = date.getUTCDate();
+  var h = date.getUTCHours();
+  var m = date.getUTCMinutes();
+  var s = date.getUTCSeconds();
+  return y+'-'+m+'-'+d+' '+h+':'+m+':'+s+' UTC';
+}
 
+if (cmd == "get") {
   try {
     var libInfo = liveLibs.get(libName, version);
   } catch (err) {
@@ -40,8 +50,29 @@ if (cmd == "get") {
   console.log(libInfo.totalValue);
 }
 
+if (cmd == "log") {
+  liveLibs.log(libName).then(function(logs) {
+    console.log('Event log for '+libName+'...');
+    logs.forEach(function(log) {
+      var message = toDateTimeString(log.time)+' '+log.type+'! ';
+      if (log.type == 'NewLib') {
+        message += 'Registered by owner: '+log.args.owner;
+      } else if (log.type == 'NewVersion') {
+        message += log.args.major.toString()+'.'+log.args.minor.toString()+'.'+log.args.patch.toString();
+        if (log.args.thresholdWei > 0) {
+          message += ', threshold: '+log.args.thresholdWei.toString();
+        }
+      } else {
+        message += ' not yet implemented.'
+      }
+      console.log(message);
+    });
+  }).catch(function(err) {
+    console.error(err);
+  });
+}
+
 if (cmd == "register") {
-  var libName = argv._[1];
   console.log('Attempting to register '+libName+', please wait for mining.');
   liveLibs.register(libName, argv.version, argv.address, argv.abi, argv.unlockat).catch(function(err) {
     console.log(err);
@@ -49,7 +80,6 @@ if (cmd == "register") {
 }
 
 if (cmd == "contribute") {
-  var libName = argv._[1];
   console.log('Attempting to contribute to '+libName+', please wait for mining.');
   liveLibs.contributeTo(libName, version, argv.wei).catch(function(err) {
     console.log(err);

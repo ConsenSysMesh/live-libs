@@ -45,6 +45,26 @@ Via Javascript:
     console.log(libInfo.abi);
     console.log(libInfo.abstractSource());
 
+## Getting a library's event log
+
+From the command line:
+
+    $ live-libs log LibName
+    Event log for Foo...
+    2016-04-17 12:34:56 UTC NewLib! Registered by owner: 0x28bc5a7226a82053aa29c0806c380cfb6a82bb0c
+    2016-04-17 12:34:56 UTC NewVersion! 0.0.1
+    2016-05-17 17:27:37 UTC NewVersion! 0.0.2
+
+Via Javascript:
+
+    liveLibs.log(libName).then(function(events) {
+      events.forEach(function(event) {
+        console.log(event.type);
+        console.log(event.time);
+        console.log(event.args);
+      });
+    });
+
 ## How to register a live library
 
 From the command line:

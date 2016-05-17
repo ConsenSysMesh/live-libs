@@ -46,6 +46,26 @@ function LiveLibs(web3, verbose) {
     };
   };
 
+  this.log = function(libName) {
+    return new Promise(function(resolve, reject) {
+      var events = findContract().allEvents({fromBlock: 0});
+      events.get(function(error, results) {
+        if (error) return reject(error);
+        return resolve(results);
+      });
+    }).then(function(rawEvents) {
+      var events = [];
+      rawEvents.filter(function(raw) {
+        return libName == ethUtils.toAscii(web3, raw.args.name);
+      }).forEach(function(raw) {
+        delete raw.args.name; // since we're already filtering by name
+        var block = web3.eth.getBlock(raw.blockNumber);
+        events.push({time: block.timestamp, type: raw.event, args: raw.args});
+      });
+      return Promise.resolve(events);
+    });
+  };
+
   this.register = function(libName, version, address, abiString, thresholdWei) {
     web3.eth.defaultAccount = web3.eth.coinbase;
 
@@ -122,7 +142,7 @@ function LiveLibs(web3, verbose) {
   this.allNames = function() {
     var names = [];
     findContract().allNames().forEach(function(rawName) {
-      var plainName = web3.toAscii(rawName).replace(/\0/g, '');
+      var plainName = ethUtils.toAscii(web3, rawName);
       names.push(plainName);
     });
     return names;

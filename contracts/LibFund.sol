@@ -7,9 +7,9 @@ contract LibFund {
         uint totalValue;
     }
 
-    event Setup(bytes32 name, uint threshold, address author);
-    event Update(bytes32 name, uint threshold);
-    event FundsAdded(bytes32 name, address contributor, uint contribution, uint totalValue);
+    event Setup(bytes32 indexed name, uint threshold, address author);
+    event Update(bytes32 indexed name, uint threshold);
+    event FundsAdded(bytes32 indexed name, address contributor, uint contribution, uint totalValue);
 
     //       name                versionNum
     mapping (bytes32 => mapping (uint => Fund)) public funds;

@@ -8,9 +8,9 @@ contract LiveLibs {
         address author;
     }
 
-    event NewLib(bytes32 name, address owner);
-    event NewVersion(bytes32 name, uint major, uint minor, uint patch, uint thresholdWei);
-    event OwnershipChange(bytes32 name, address oldOwner, address newOwner);
+    event NewLib(bytes32 indexed name, address owner);
+    event NewVersion(bytes32 indexed name, uint major, uint minor, uint patch, uint thresholdWei);
+    event OwnershipChange(bytes32 indexed name, address oldOwner, address newOwner);
 
     bytes32[] public names;
 
