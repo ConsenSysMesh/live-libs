@@ -15,15 +15,15 @@ var cmd = argv._[0];
 var libName = argv._[1];
 var version = argv.v || argv.version;
 
-function toDateTimeString(time) {
-  var date = new Date(time*1000);
-  var y = date.getUTCFullYear();
-  var m = date.getUTCMonth();
-  var d = date.getUTCDate();
-  var h = date.getUTCHours();
-  var m = date.getUTCMinutes();
-  var s = date.getUTCSeconds();
-  return y+'-'+m+'-'+d+' '+h+':'+m+':'+s+' UTC';
+function toDateTimeString(time){
+  function pad(n){return n<10 ? '0'+n : n;}
+  var d = new Date(time*1000);
+  return d.getUTCFullYear()+'-'
+  + pad(d.getUTCMonth()+1)+'-'
+  + pad(d.getUTCDate())+'T'
+  + pad(d.getUTCHours())+':'
+  + pad(d.getUTCMinutes())+':'
+  + pad(d.getUTCSeconds())+'Z';
 }
 
 if (cmd == "get") {

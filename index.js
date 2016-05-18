@@ -48,6 +48,7 @@ function LiveLibs(web3, verbose) {
 
   this.log = function(libName) {
     return new Promise(function(resolve, reject) {
+      // TODO: This is wildly inefficient, grabs the entire event history of this contract
       var events = findContract().allEvents({fromBlock: 0});
       events.get(function(error, results) {
         if (error) return reject(error);
@@ -55,6 +56,7 @@ function LiveLibs(web3, verbose) {
       });
     }).then(function(rawEvents) {
       var events = [];
+      // TODO: Since we're indexing the events by name, we should be able to avoid this filtering
       rawEvents.filter(function(raw) {
         return libName == ethUtils.toAscii(web3, raw.args.name);
       }).forEach(function(raw) {

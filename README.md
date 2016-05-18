@@ -51,9 +51,9 @@ From the command line:
 
     $ live-libs log LibName
     Event log for Foo...
-    2016-04-17 12:34:56 UTC NewLib! Registered by owner: 0x28bc5a7226a82053aa29c0806c380cfb6a82bb0c
-    2016-04-17 12:34:56 UTC NewVersion! 0.0.1
-    2016-05-17 17:27:37 UTC NewVersion! 0.0.2
+    2016-04-17T12:34:56Z NewLib! Registered by owner: 0x28bc5a7226a82053aa29c0806c380cfb6a82bb0c
+    2016-04-17T12:34:56Z NewVersion! 0.0.1
+    2016-05-17T17:27:37Z NewVersion! 0.0.2
 
 Via Javascript:
 
