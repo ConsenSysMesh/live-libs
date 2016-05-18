@@ -15,17 +15,6 @@ var cmd = argv._[0];
 var libName = argv._[1];
 var version = argv.v || argv.version;
 
-function toDateTimeString(time){
-  function pad(n){return n<10 ? '0'+n : n;}
-  var d = new Date(time*1000);
-  return d.getUTCFullYear()+'-'
-  + pad(d.getUTCMonth()+1)+'-'
-  + pad(d.getUTCDate())+'T'
-  + pad(d.getUTCHours())+':'
-  + pad(d.getUTCMinutes())+':'
-  + pad(d.getUTCSeconds())+'Z';
-}
-
 if (cmd == "get") {
   try {
     var libInfo = liveLibs.get(libName, version);
@@ -48,6 +37,17 @@ if (cmd == "get") {
   }
   console.log('\nContributions (wei):');
   console.log(libInfo.totalValue);
+}
+
+function toDateTimeString(time){
+  function pad(n){return n<10 ? '0'+n : n;}
+  var d = new Date(time*1000);
+  return d.getUTCFullYear()+'-'
+  + pad(d.getUTCMonth()+1)+'-'
+  + pad(d.getUTCDate())+'T'
+  + pad(d.getUTCHours())+':'
+  + pad(d.getUTCMinutes())+':'
+  + pad(d.getUTCSeconds())+'Z';
 }
 
 if (cmd == "log") {

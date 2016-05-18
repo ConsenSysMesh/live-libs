@@ -56,7 +56,7 @@ function LiveLibs(web3, verbose) {
       });
     }).then(function(rawEvents) {
       var events = [];
-      // TODO: Since we're indexing the events by name, we should be able to avoid this filtering
+      // TODO: Since we're indexing the events by name, shouldn't we be able to avoid this filtering?
       rawEvents.filter(function(raw) {
         return libName == ethUtils.toAscii(web3, raw.args.name);
       }).forEach(function(raw) {
