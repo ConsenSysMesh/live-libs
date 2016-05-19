@@ -86,6 +86,10 @@ if (cmd == "contribute") {
   });
 }
 
+if (cmd == "env") {
+  console.log(liveLibs.env);
+}
+
 if (cmd == "download") {
   liveLibs.downloadData();
 }
