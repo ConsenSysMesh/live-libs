@@ -1,4 +1,3 @@
-* Query events by name rather than just grabbing everything and filtering manaully
 * Switch all web3 calls to async so we can use testrpc more efficiently, and provide a more consistent JavaScript interface (investigate pudding)
 * Currently the gas-costing methods require the account to be unlocked in geth, look into [this](https://github.com/ethereum/web3.js/issues/388#issuecomment-219227190) to allow people to auth via the script.
 * Auto-register LiveLibsUtils on deploy

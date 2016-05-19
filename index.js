@@ -48,18 +48,13 @@ function LiveLibs(web3, verbose) {
 
   this.log = function(libName) {
     return new Promise(function(resolve, reject) {
-      // TODO: This is wildly inefficient, grabs the entire event history of this contract
-      var events = findContract().allEvents({fromBlock: 0});
-      events.get(function(error, results) {
+      filterEventsBy(libName, function(error, results) {
         if (error) return reject(error);
         return resolve(results);
       });
     }).then(function(rawEvents) {
       var events = [];
-      // TODO: Since we're indexing the events by name, shouldn't we be able to avoid this filtering?
-      rawEvents.filter(function(raw) {
-        return libName == ethUtils.toAscii(web3, raw.args.name);
-      }).forEach(function(raw) {
+      rawEvents.forEach(function(raw) {
         delete raw.args.name; // since we're already filtering by name
         var block = web3.eth.getBlock(raw.blockNumber);
         events.push({time: block.timestamp, type: raw.event, args: raw.args});
@@ -158,12 +153,13 @@ function LiveLibs(web3, verbose) {
     return migration.deploy(this.register, web3, onTestrpc);
   };
 
-  function findContract() {
-
+  function liveLibsABI() {
     // NOTE: before updating this file, download the latest registry from networks
-    var abi = JSON.parse(fs.readFileSync('./abis/LiveLibs.json', 'utf8'));
-    var contract = web3.eth.contract(abi);
+    return JSON.parse(fs.readFileSync('./abis/LiveLibs.json', 'utf8'));
+  }
 
+  function findContract() {
+    var contract = web3.eth.contract(liveLibsABI());
     return detectLiveLibsInstance(contract) || findTestRPCInstance(contract);
   }
 
@@ -232,6 +228,48 @@ function LiveLibs(web3, verbose) {
       var noop = function() {};
       return { log: noop, error: noop };
     }
+  }
+
+  function filterEventsBy(libName, callback) {
+    var contract = findContract();
+
+    var searchString = web3.toHex(libName);
+
+    // TODO: Isn't there a better way to ensure the string is zero-padded?
+    // If it's not zero-padded, the topic doesn't work correctly
+    while (searchString.length < 66) {
+      searchString += "0";
+    }
+
+    var filter = web3.eth.filter({
+      address: contract.address,
+      fromBlock: 0,
+      topics: [null, searchString]
+    });
+
+
+    filter.get(function(error, results) {
+      if (error) return callback(error);
+      var abi = liveLibsABI();
+      var decodedResults = results.map(function(log) { return decode(log, abi) });
+      callback(null, decodedResults);
+    });
+  }
+
+  function decode(log, abi) {
+    var SolidityEvent = require('web3/lib/web3/event');
+
+    var decoders = abi.filter(function (json) {
+        return json.type === 'event';
+    }).map(function(json) {
+        return new SolidityEvent(null, json, null);
+    });
+
+    var decoder = decoders.find(function(decoder) {
+      return decoder.signature() == log.topics[0].replace("0x","");
+    });
+
+    return decoder.decode(log);
   }
 }
 
