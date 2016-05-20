@@ -71,7 +71,8 @@ Via Javascript:
 
 From the command line:
 
-    $ live-libs register YourLibName --version 3.5.8 --address 0x45e2... --abi '[...]' --docurl http://example.com/docs --sourceurl http://example.com/source/lib.sol
+    $ live-libs register YourLibName --version 3.5.8 --address 0x45e2... --abi '[...]' \
+    [--docurl http://example.com/docs] [--sourceurl http://example.com/source/lib.sol]
 
 __Warning:__ There is no way to remove your library. Once it's live, it's live forever.
 
