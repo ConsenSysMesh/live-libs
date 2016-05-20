@@ -12,12 +12,14 @@ testHelper.deployAndRun(function(liveLibs) {
 
     it('gets what it sets', function(done) {
       var libName = 'foo';
-      liveLibs.register(libName, '0.1.2', fakeAddress, fakeAbi, 0).then(function() {
+      var fakeDocs = 'http://example.com/docs';
+      liveLibs.register(libName, '0.1.2', fakeAddress, fakeAbi, fakeDocs, '', 0).then(function() {
 
         var libInfo = liveLibs.get(libName);
         assert.equal(libInfo.address, fakeAddress);
         assert.equal(libInfo.version, '0.1.2');
         assert.equal(libInfo.abi, fakeAbi);
+        assert.equal(libInfo.docURL, fakeDocs);
         assert.equal(libInfo.thresholdWei, 0);
         assert.equal(libInfo.totalValue, 0);
 
@@ -26,7 +28,7 @@ testHelper.deployAndRun(function(liveLibs) {
 
     it('locks unfunded libraries', function(done) {
       var libName = 'abc';
-      liveLibs.register(libName, '0.1.2', fakeAddress, fakeAbi, 1000).then(function() {
+      liveLibs.register(libName, '0.1.2', fakeAddress, fakeAbi, '', '', 1000).then(function() {
 
         assert.throws(function() { liveLibs.get(libName); });
 
@@ -37,7 +39,7 @@ testHelper.deployAndRun(function(liveLibs) {
 
       var libName = 'xyz';
       var version = '30.1.2';
-      liveLibs.register(libName, version, fakeAddress, fakeAbi, 1000).then(function() {
+      liveLibs.register(libName, version, fakeAddress, fakeAbi, '', '', 1000).then(function() {
         return liveLibs.contributeTo(libName, version, 250);
       }).then(function() {
         return liveLibs.contributeTo(libName, version, 750);

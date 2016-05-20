@@ -1,6 +1,5 @@
 * Currently the gas-costing methods require the account to be unlocked in geth, look into [this](https://github.com/ethereum/web3.js/issues/388#issuecomment-219227190) to allow people to auth via the script.
 * Switch all web3 calls to async so we can use testrpc more efficiently, and provide a more consistent JavaScript interface (investigate pudding)
-* Auto-register LiveLibsUtils on deploy
 * Script for updating newly-deployed live-lib contract with existing network data (useful for when the live-libs contract is updated)
 * Script for updating morden live-libs contract with live network data
 * PoC using serpent with live-libs

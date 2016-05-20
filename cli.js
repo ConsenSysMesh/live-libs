@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 var argv = require('yargs').option('address', {type: 'string'}).argv;
+var versionUtils = require('./lib/version-utils');
 
 var Web3 = require('web3');
 var web3 = new Web3();
@@ -31,6 +32,14 @@ if (cmd == "get") {
   console.log(libInfo.abi);
   console.log('\nAbstract source:');
   console.log(libInfo.abstractSource());
+  if (libInfo.docURL) {
+    console.log('\nDocumentation URL:');
+    console.log(libInfo.docURL);
+  }
+  if (libInfo.sourceURL) {
+    console.log('\nSource URL:');
+    console.log(libInfo.sourceURL);
+  }
   if (libInfo.thresholdWei > 0) {
     console.log('\nUnlocked at (wei):');
     console.log(libInfo.thresholdWei);
@@ -58,7 +67,7 @@ if (cmd == "log") {
       if (log.type == 'NewLib') {
         message += 'Registered by owner: '+log.args.owner;
       } else if (log.type == 'NewVersion') {
-        message += log.args.major.toString()+'.'+log.args.minor.toString()+'.'+log.args.patch.toString();
+        message += versionUtils.calc(log.args.versionNum).string;
         if (log.args.thresholdWei > 0) {
           message += ', threshold: '+log.args.thresholdWei.toString();
         }
@@ -74,7 +83,7 @@ if (cmd == "log") {
 
 if (cmd == "register") {
   console.log('Attempting to register '+libName+', please wait for mining.');
-  liveLibs.register(libName, argv.version, argv.address, argv.abi, argv.unlockat).catch(function(err) {
+  liveLibs.register(libName, argv.version, argv.address, argv.abi, argv.docurl, argv.sourceurl, argv.unlockat).catch(function(err) {
     console.log(err);
   });
 }

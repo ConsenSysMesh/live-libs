@@ -26,7 +26,7 @@ function LiveLibs(web3, verbose) {
 
     if (!v) throw(Error('No versions of '+libName+' found'));
 
-    rawLibData = findContract().get(libName, v.major, v.minor, v.patch);
+    rawLibData = findContract().get(libName, v.num);
 
     if (ethUtils.blankAddress(rawLibData[0])) {
       if (version && versionUtils.exists(libName, version, findContract())) {
@@ -40,8 +40,10 @@ function LiveLibs(web3, verbose) {
       version: v.string,
       address: rawLibData[0],
       abi: rawLibData[1],
-      thresholdWei: rawLibData[2].toString(),
-      totalValue: rawLibData[3].toString(),
+      docURL: rawLibData[2],
+      sourceURL: rawLibData[3],
+      thresholdWei: rawLibData[4].toString(),
+      totalValue: rawLibData[5].toString(),
       abstractSource: function() { return generateAbstractLib(libName, rawLibData[1]); }
     };
   };
@@ -63,7 +65,7 @@ function LiveLibs(web3, verbose) {
     });
   };
 
-  this.register = function(libName, version, address, abiString, thresholdWei) {
+  this.register = function(libName, version, address, abiString, docUrl, sourceUrl, thresholdWei) {
     web3.eth.defaultAccount = web3.eth.coinbase;
 
     return new Promise(function(resolve, reject) {
@@ -79,12 +81,12 @@ function LiveLibs(web3, verbose) {
 
       findContract().register(
         libName,
-        parsedVersion.major,
-        parsedVersion.minor,
-        parsedVersion.patch,
+        parsedVersion.num,
         address,
         abiString,
-        thresholdWei || 0,
+        (docUrl || ''),
+        (sourceUrl || ''),
+        (thresholdWei || 0),
         {value: 0, gas: 2000000}, // TODO: need to estimate this
         function(err, txHash) {
           if (err) {
@@ -121,7 +123,7 @@ function LiveLibs(web3, verbose) {
 
       instance.addTo(
         libName,
-        v.major, v.minor, v.patch,
+        v.num,
         {value: wei, gas: 2000000}, // TODO: need to estimate this
         function(err, txHash) {
           if (err) {

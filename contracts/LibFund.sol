@@ -1,5 +1,3 @@
-import "LiveLibsUtils.sol";
-
 contract LibFund {
     struct Fund {
         address author;
@@ -7,11 +5,11 @@ contract LibFund {
         uint totalValue;
     }
 
-    event Setup(bytes32 indexed name, uint threshold, address author);
-    event Update(bytes32 indexed name, uint threshold);
-    event FundsAdded(bytes32 indexed name, address contributor, uint contribution, uint totalValue);
+    event Setup(bytes32 indexed libName, uint versionNum, uint threshold, address author);
+    event Update(bytes32 indexed libName, uint versionNum, uint threshold);
+    event FundsAdded(bytes32 indexed libName, uint versionNum, address contributor, uint contribution, uint totalValue);
 
-    //       name                versionNum
+    //       libName             versionNum
     mapping (bytes32 => mapping (uint => Fund)) public funds;
 
     address public creator = msg.sender;
@@ -22,41 +20,40 @@ contract LibFund {
         owner = o; // Should be the LiveLibs instance
     }
 
-    function setThreshold(bytes32 name, uint versionNum, uint threshold, address author) {
+    function setThreshold(bytes32 libName, uint versionNum, uint threshold, address author) {
         if (author == 0) throw;
 
         // Only accept the contract owner or the library author
-        if (owner != msg.sender && funds[name][versionNum].author != msg.sender)
+        if (owner != msg.sender && funds[libName][versionNum].author != msg.sender)
             throw;
 
-        if (funds[name][versionNum].author == 0) {
-            Setup(name, threshold, author);
-            funds[name][versionNum].threshold = threshold;
-            funds[name][versionNum].author = author;
+        if (funds[libName][versionNum].author == 0) {
+            Setup(libName, versionNum, threshold, author);
+            funds[libName][versionNum].threshold = threshold;
+            funds[libName][versionNum].author = author;
 
         } else {
             // TODO: There is no interface that allows anyone to reset threshold
-            Update(name, threshold);
-            funds[name][versionNum].threshold = threshold;
+            Update(libName, versionNum, threshold);
+            funds[libName][versionNum].threshold = threshold;
         }
     }
     
-    function addTo(bytes32 name, uint major, uint minor, uint patch) {
-        uint versionNum = LiveLibsUtils.toVersionNum(major, minor, patch);
-        if (funds[name][versionNum].author == 0) throw;
+    function addTo(bytes32 libName, uint versionNum) {
+        if (funds[libName][versionNum].author == 0) throw;
 
-        funds[name][versionNum].totalValue += msg.value;
-        FundsAdded(name, msg.sender, msg.value, funds[name][versionNum].totalValue);
+        funds[libName][versionNum].totalValue += msg.value;
+        FundsAdded(libName, versionNum, msg.sender, msg.value, funds[libName][versionNum].totalValue);
 
-        funds[name][versionNum].author.send(msg.value);
+        funds[libName][versionNum].author.send(msg.value);
     }
 
-    function isLocked(bytes32 name, uint versionNum) constant returns (bool) {
-        return funds[name][versionNum].threshold > funds[name][versionNum].totalValue;
+    function isLocked(bytes32 libName, uint versionNum) constant returns (bool) {
+        return funds[libName][versionNum].threshold > funds[libName][versionNum].totalValue;
     }
 
-    function get(bytes32 name, uint versionNum) constant returns(address, uint, uint) {
-        Fund f = funds[name][versionNum];
+    function get(bytes32 libName, uint versionNum) constant returns(address, uint, uint) {
+        Fund f = funds[libName][versionNum];
         return (f.author, f.threshold, f.totalValue);
     }
 }
