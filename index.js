@@ -200,7 +200,8 @@ function LiveLibs(web3, verbose) {
 
   function liveAddress(address) {
     var contractCode = web3.eth.getCode(address);
-    return contractCode != '0x';
+                        //geth                  //testrpc
+    return contractCode != '0x' && contractCode != '0x0';
   }
 
   function txHandler(txHash, successMessage) {

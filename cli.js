@@ -94,11 +94,15 @@ if (cmd == "download") {
   liveLibs.downloadData();
 }
 
-var onTestrpc = liveLibs.env == "testrpc";
-if (cmd == "deploy" && onTestrpc) {
-  liveLibs.deploy(onTestrpc).catch(function(err) {
-    console.log(err);
-  });
+if (cmd == "deploy") {
+  var onTestrpc = liveLibs.env == "testrpc";
+  if (onTestrpc) {
+    liveLibs.deploy(onTestrpc).catch(function(err) {
+      console.log(err);
+    });
+  } else {
+    console.log('Deploy not available for '+liveLibs.env);
+  }
 }
 
 // TODO: Handle case where cmd matches nothing
