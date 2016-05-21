@@ -1,3 +1,5 @@
+"use strict";
+
 var fs = require('fs');
 
 var generateAbstractLib = require('./lib/generate');
@@ -26,7 +28,7 @@ function LiveLibs(web3, verbose) {
 
     if (!v) throw(Error('No versions of '+libName+' found'));
 
-    rawLibData = findContract().get(libName, v.num);
+    var rawLibData = findContract().get(libName, v.num);
 
     if (ethUtils.blankAddress(rawLibData[0])) {
       if (version && versionUtils.exists(libName, version, findContract())) {
