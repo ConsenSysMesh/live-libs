@@ -68,8 +68,6 @@ function LiveLibs(web3, verbose) {
   };
 
   this.register = function(libName, version, address, abiString, docUrl, sourceUrl, thresholdWei) {
-    web3.eth.defaultAccount = web3.eth.coinbase;
-
     return new Promise(function(resolve, reject) {
       if (!libName || libName.length > 32)
         return reject('Library names must be between 1-32 characters.');
@@ -107,8 +105,6 @@ function LiveLibs(web3, verbose) {
   };
 
   this.contributeTo = function(libName, version, wei) {
-    web3.eth.defaultAccount = web3.eth.coinbase;
-
     var abi = JSON.parse(fs.readFileSync('./abis/LibFund.json', 'utf8'));
     var contract = web3.eth.contract(abi);
 

@@ -82,6 +82,7 @@ if (cmd == "log") {
 }
 
 if (cmd == "register") {
+  web3.eth.defaultAccount = argv.account || web3.eth.coinbase;
   console.log('Attempting to register '+libName+', please wait for mining.');
   liveLibs.register(libName, argv.version, argv.address, argv.abi, argv.docurl, argv.sourceurl, argv.unlockat).catch(function(err) {
     console.log(err);
@@ -89,6 +90,7 @@ if (cmd == "register") {
 }
 
 if (cmd == "contribute") {
+  web3.eth.defaultAccount = argv.account || web3.eth.coinbase;
   console.log('Attempting to contribute to '+libName+', please wait for mining.');
   liveLibs.contributeTo(libName, version, argv.wei).catch(function(err) {
     console.log(err);

@@ -8,7 +8,7 @@ Providing reusable Solidity libraries that are live on the Ethereum blockchain.
 
 ## Setting up your environment
 
-You will need to be connected to an Ethereum network (testrpc, morden, mainnet, etc) when interacting with live-libs. Follow [these instructions](https://ethereum.gitbooks.io/frontier-guide/content/getting_a_client.html) to install an Ethereum node. The live-libs command line interface defaults to `http://localhost:8545` to reach the Ethereum node's RPC interface. You can override this with `--rpcurl https://example:8765`
+You will need to be connected to an Ethereum network (testrpc, morden, mainnet, etc) when interacting with live-libs. Follow [these instructions](https://ethereum.gitbooks.io/frontier-guide/content/getting_a_client.html) to install an Ethereum node. The live-libs command line interface defaults to `http://localhost:8545` to reach the Ethereum node's RPC interface. You can override this with `--rpcurl https://example:8765`.
 
 ## Getting a library's information
 
@@ -66,6 +66,12 @@ Via Javascript:
         console.log(event.args);
       });
     });
+
+## Working with accounts
+
+Getting info and logs about a library does not require a transaction, so those calls require no account nor cost any gas. (They use [https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_call](eth_call).) Live Libs requires you to specify and unlock an account in order to [send transactions](https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_sendtransaction) to Ethereum. Registering and contributing require a transaction, costing you gas, and therefore requiring an account.
+
+If not specified via `--account`, `web3.eth.coinbase` will be used as your account. Also, you will need to unlock the account in order to use it for transactions. For the command line, you can read the [geth docs](https://github.com/ethereum/go-ethereum/wiki/Managing-your-accounts). For JavaScript, assuming you've started geth with `--rpcapi "eth,web3,personal"`, you can call `web3.eth.personal.unlockAccount(address, password, durationSeconds)` to unlock it. ([source](https://github.com/ethereum/web3.js/blob/master/lib/web3/methods/personal.js))
 
 ## How to register a live library
 
