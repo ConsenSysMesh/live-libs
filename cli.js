@@ -106,6 +106,7 @@ if (cmd == "download") {
 }
 
 if (cmd == "deploy") {
+  web3.eth.defaultAccount = argv.account || web3.eth.coinbase;
   var onTestrpc = liveLibs.env == "testrpc";
   if (onTestrpc) {
     liveLibs.deploy(onTestrpc).catch(function(err) {
