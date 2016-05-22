@@ -69,9 +69,9 @@ Via Javascript:
 
 ## Working with accounts
 
-Getting info and logs about a library does not require a transaction, so those calls require no account nor cost any gas. (They use [https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_call](eth_call).) Live Libs requires you to specify and unlock an account in order to [send transactions](https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_sendtransaction) to Ethereum. Registering and contributing require a transaction, costing you gas, and therefore requiring an account.
+`get` and `log` do not require a transaction, so those calls require no account nor cost any gas. (They use [eth_call](https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_call).) `register` and `contribute` require a transaction, costing you gas, and therefore require an unlocked account. (These commands use [eth_sendTransaction](https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_sendtransaction)).
 
-If not specified via `--account`, `web3.eth.coinbase` will be used as your account. Also, you will need to unlock the account in order to use it for transactions. For the command line, you can read the [geth docs](https://github.com/ethereum/go-ethereum/wiki/Managing-your-accounts). For JavaScript, assuming you've started geth with `--rpcapi "eth,web3,personal"`, you can call `web3.eth.personal.unlockAccount(address, password, durationSeconds)` to unlock it. ([source](https://github.com/ethereum/web3.js/blob/master/lib/web3/methods/personal.js))
+If not specified via `--account` on the command line, `web3.eth.coinbase` will be used as your account. Also, you will need to unlock the account in order to use it to spend Ether on transactions. For the command line, you can read the [geth docs](https://github.com/ethereum/go-ethereum/wiki/Managing-your-accounts). For JavaScript, assuming you've started geth with `--rpcapi "eth,web3,personal"`, you can call `web3.eth.personal.unlockAccount(address, password, durationSeconds)` to unlock it. ([source](https://github.com/ethereum/web3.js/blob/master/lib/web3/methods/personal.js))
 
 ## How to register a live library
 
