@@ -8,6 +8,7 @@ web3.setProvider(new web3.providers.HttpProvider('http://0.0.0.0:8545'));
 
 var LiveLibs = require('../index.js');
 var liveLibs = new LiveLibs(web3);
+web3.eth.defaultAccount = web3.eth.coinbase;
 
 function deployToTestRPC() {
   var deploy;
