@@ -1,6 +1,6 @@
 "use strict";
 
-var fs = require('fs');
+var path = require('path');
 
 var generateAbstractLib = require('./lib/generate');
 var migration = require('./lib/migration');
@@ -105,7 +105,7 @@ function LiveLibs(web3, verbose) {
   };
 
   this.contributeTo = function(libName, version, wei) {
-    var abi = JSON.parse(fs.readFileSync('./abis/LibFund.json', 'utf8'));
+    var abi = JSON.parse(fileUtils.readSync(resolve('./abis/LibFund.json')));
     var contract = web3.eth.contract(abi);
 
     return new Promise(function(resolve, reject) {
@@ -155,7 +155,7 @@ function LiveLibs(web3, verbose) {
 
   function liveLibsABI() {
     // NOTE: before updating this file, download the latest registry from networks
-    return JSON.parse(fs.readFileSync('./abis/LiveLibs.json', 'utf8'));
+    return JSON.parse(fileUtils.readSync(resolve('./abis/LiveLibs.json')));
   }
 
   function findContract() {
@@ -181,8 +181,8 @@ function LiveLibs(web3, verbose) {
   function findTestRPCInstance(contract) {
     var address;
 
-    if (fs.existsSync(fileUtils.testRpcAddress))
-      address = fs.readFileSync(fileUtils.testRpcAddress, 'utf8');
+    if (fileUtils.testRpcAddressExists())
+      address = fileUtils.getTestRpcAddress();
     if (!address)
       return logger.error('Contract address not found for testrpc!');
     if (!liveAddress(address))
@@ -194,7 +194,7 @@ function LiveLibs(web3, verbose) {
   }
 
   function parseNetworkConfig() {
-    var jsonString = fs.readFileSync('./networks.json', 'utf8');
+    var jsonString = fileUtils.readSync(resolve('./networks.json'));
     return JSON.parse(jsonString);
   }
 
@@ -271,6 +271,10 @@ function LiveLibs(web3, verbose) {
     });
 
     return decoder.decode(log);
+  }
+
+  function resolve(relativePath) {
+    return path.resolve(path.join(__dirname, relativePath));
   }
 }
 
