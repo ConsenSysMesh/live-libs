@@ -4,7 +4,7 @@
   "version": "0.1.1",
   "description": "Providing reusable Solidity libraries that are live on the Ethereum blockchain.",
   "dependencies": {
-    "solc": "^0.3.1-1",
+    "solc": "^0.3.2-1",
     "web3": "^0.15.3",
     "yargs": "^4.7.0"
   },

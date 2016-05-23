@@ -1,5 +1,4 @@
 * Try out solc-js import hook
-* Generate HTML from contract data
 * Switch all web3 calls to async? so we can use testrpc more efficiently, and provide a more consistent JavaScript interface (investigate pudding)
 * Script for updating newly-deployed live-lib contract with existing network data (useful for when the live-libs contract is updated)
 * Script for updating morden live-libs contract with live network data
