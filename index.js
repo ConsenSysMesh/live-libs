@@ -145,6 +145,15 @@ function LiveLibs(web3, verbose) {
     return names;
   };
 
+  this.allVersionsFor = function(libName) {
+    var versionStrings = [];
+    findContract().getVersions(libName).forEach(function(rawVersion) {
+      var version = versionUtils.calc(rawVersion);
+      versionStrings.push(version.string);
+    });
+    return versionStrings;
+  };
+
   this.downloadData = function() {
     migration.downloadData(findContract(), web3);
   };
