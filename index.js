@@ -59,7 +59,7 @@ function LiveLibs(web3, verbose) {
     }).then(function(rawEvents) {
       var events = [];
       rawEvents.forEach(function(raw) {
-        delete raw.args.name; // since we're already filtering by name
+        delete raw.args.libName; // since we're already filtering by name
         var block = web3.eth.getBlock(raw.blockNumber);
         events.push({time: block.timestamp, type: raw.event, args: raw.args});
       });
