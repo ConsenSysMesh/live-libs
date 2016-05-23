@@ -1,6 +1,6 @@
-* Try out solc-js import hook
-* Switch all web3 calls to async? so we can use testrpc more efficiently, and provide a more consistent JavaScript interface (investigate pudding)
+* Try to send signed/raw transactions (via @tcoulter: "You can use the provider-engine to do translations from `sendTransaction` to `sendRawTransaction` before they hit the server.")
 * Script for updating newly-deployed live-lib contract with existing network data (useful for when the live-libs contract is updated)
+* Switch all web3 calls to async? so we can use testrpc more efficiently, and provide a more consistent JavaScript interface (investigate pudding)
 * Script for updating morden live-libs contract with live network data
 * PoC using serpent with live-libs
 * Explore whether live-libs testing needs to be incorporated
