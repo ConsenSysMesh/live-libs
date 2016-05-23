@@ -60,7 +60,14 @@ function LiveLibs(web3, verbose) {
       var events = [];
       rawEvents.forEach(function(raw) {
         delete raw.args.libName; // since we're already filtering by name
+
+        if (raw.args.versionNum) {
+          raw.args.version = versionUtils.calc(raw.args.versionNum).string;
+          delete raw.args.versionNum;
+        }
+
         var block = web3.eth.getBlock(raw.blockNumber);
+
         events.push({time: block.timestamp, type: raw.event, args: raw.args});
       });
       return Promise.resolve(events);

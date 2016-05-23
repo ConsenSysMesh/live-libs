@@ -67,7 +67,7 @@ if (cmd == "log") {
       if (log.type == 'NewLib') {
         message += 'Registered by owner: '+log.args.owner;
       } else if (log.type == 'NewVersion') {
-        message += versionUtils.calc(log.args.versionNum).string;
+        message += log.args.version;
         if (log.args.thresholdWei > 0) {
           message += ', threshold: '+log.args.thresholdWei.toString();
         }
