@@ -8,14 +8,23 @@ var versionUtils = require('./lib/version-utils');
 var fileUtils = require('./lib/file-utils');
 var ethUtils = require('./lib/eth-utils');
 
-function LiveLibs(web3, verbose) {
+function LiveLibs(web3, options) {
+  if (options) {
+    var verbose = options.verbose;
+    var testing = options.testing;
+  }
+
   var logger = getLogger(verbose);
 
-  var _contract = findContract();
-  if (_contract) {
-    this.env = _contract.env;
-  } else {
-    this.env = 'testrpc';
+  this.env = function(callback) {
+    findContract(function(err, contract) {
+      if (err) return callback(err);
+      if (contract) {
+        callback(null, contract.env);
+      } else {
+        callback(null, 'testrpc');
+      }
+    });
   }
 
   this.get = function(libName, version) {
@@ -23,34 +32,39 @@ function LiveLibs(web3, verbose) {
       if (version) {
         resolve(versionUtils.parse(version));
       } else {
-        versionUtils.latest(libName, findContract(), function(err, v) {
-          if (err) return reject(err);
-          resolve(v);
+        findContract(function(error, contract) {
+          if (error) return reject(error);
+          versionUtils.latest(libName, contract, function(err, v) {
+            if (err) return reject(err);
+            resolve(v);
+          });
         });
       }
     }).then(function(v) {
       return new Promise(function(resolve, reject) {
         if (!v) return reject('No versions of '+libName+' found');
-        findContract().get(libName, v.num, function(err, rawLibData) {
-          if (err) return reject(err);
-
-          if (ethUtils.blankAddress(rawLibData[0])) {
-            if (version && versionUtils.exists(libName, version, findContract())) {
-              // If they went to the trouble of specifying a version, let's see if it's locked
-              return reject(libName+' is locked');
+        findContract(function(error, contract) {
+          if (error) return reject(error);
+          contract.get(libName, v.num, function(err, rawLibData) {
+            if (err) return reject(err);
+            if (ethUtils.blankAddress(rawLibData[0])) {
+              if (version && versionUtils.exists(libName, version, contract)) {
+                // If they went to the trouble of specifying a version, let's see if it's locked
+                return reject(libName+' is locked');
+              }
+              return reject(libName+' '+version+' is not registered');
             }
-            return reject(libName+' '+version+' is not registered');
-          }
 
-          resolve({
-            version: v.string,
-            address: rawLibData[0],
-            abi: rawLibData[1],
-            docURL: rawLibData[2],
-            sourceURL: rawLibData[3],
-            thresholdWei: rawLibData[4].toString(),
-            totalValue: rawLibData[5].toString(),
-            abstractSource: function() { return generateAbstractLib(libName, rawLibData[1]); }
+            resolve({
+              version: v.string,
+              address: rawLibData[0],
+              abi: rawLibData[1],
+              docURL: rawLibData[2],
+              sourceURL: rawLibData[3],
+              thresholdWei: rawLibData[4].toString(),
+              totalValue: rawLibData[5].toString(),
+              abstractSource: function() { return generateAbstractLib(libName, rawLibData[1]); }
+            });
           });
         });
       });
@@ -93,23 +107,26 @@ function LiveLibs(web3, verbose) {
         return reject('No version specified for '+libName);
       }
 
-      findContract().register(
-        libName,
-        parsedVersion.num,
-        address,
-        abiString,
-        (docUrl || ''),
-        (sourceUrl || ''),
-        (thresholdWei || 0),
-        {value: 0, gas: 2000000}, // TODO: need to estimate this
-        function(err, txHash) {
-          if (err) {
-            reject(err);
-          } else {
-            resolve(txHash);
+      findContract(function(error, contract) {
+        if (error) return reject(error);
+        contract.register(
+          libName,
+          parsedVersion.num,
+          address,
+          abiString,
+          (docUrl || ''),
+          (sourceUrl || ''),
+          (thresholdWei || 0),
+          {value: 0, gas: 2000000}, // TODO: need to estimate this
+          function(err, txHash) {
+            if (err) {
+              reject(err);
+            } else {
+              resolve(txHash);
+            }
           }
-        }
-      );
+        );
+      });
     }).then(function(txHash) {
       var message = 'Registered '+libName+' '+version+'!';
       if (thresholdWei > 0)
@@ -119,57 +136,78 @@ function LiveLibs(web3, verbose) {
   };
 
   this.contributeTo = function(libName, version, wei) {
-    var abi = JSON.parse(fileUtils.readSync(resolve('./abis/LibFund.json')));
-    var contract = web3.eth.contract(abi);
-
     return new Promise(function(resolve, reject) {
       if (!wei)
         return reject('No wei amount specified');
 
-      var libFundAddress = findContract().libFund();
-      if (!liveAddress(libFundAddress))
-        return reject('LibFund instance not found!');
+      findContract(function(err, liveLibsContract) {
+        if (err) return reject(err);
+        liveLibsContract.libFund(function(error, libFundAddress) {
+          if (error) return reject(error);
+          liveAddress(libFundAddress, function(err, isLive) {
+            if (err) return reject(err);
+            if (!isLive) return reject('LibFund instance not found!');
 
-      var instance = contract.at(libFundAddress);
-      var v = versionUtils.parse(version);
+            var abi = JSON.parse(fileUtils.readSync(resolvePath('./abis/LibFund.json')));
+            var libFundContract = web3.eth.contract(abi);
+            var instance = libFundContract.at(libFundAddress);
+            var v = versionUtils.parse(version);
 
-      instance.addTo(
-        libName,
-        v.num,
-        {value: wei, gas: 2000000}, // TODO: need to estimate this
-        function(err, txHash) {
-          if (err) {
-            reject(err);
-          } else {
-            resolve(txHash);
-          }
-        }
-      );
+            instance.addTo(
+              libName,
+              v.num,
+              {value: wei, gas: 2000000}, // TODO: need to estimate this
+              function(err, txHash) {
+                if (err) {
+                  reject(err);
+                } else {
+                  resolve(txHash);
+                }
+              }
+            );
+          });
+        });
+      });
     }).then(function(txHash) {
       return txHandler(txHash, 'Contributed '+wei+' wei to '+libName+' '+version+'!');
     });
   };
 
-  this.allNames = function() {
-    var names = [];
-    findContract().allNames().forEach(function(rawName) {
-      var plainName = ethUtils.toAscii(web3, rawName);
-      names.push(plainName);
+  this.allNames = function(callback) {
+    findContract(function(err, contract) {
+      if (err) return callback(err);
+      contract.allNames(function(error, rawNames) {
+        if (error) return callback(error);
+        var names = [];
+        rawNames.forEach(function(rawName) {
+          var plainName = ethUtils.toAscii(web3, rawName);
+          names.push(plainName);
+        });
+        callback(null, names);
+      });
     });
-    return names;
   };
 
   this.allVersionsFor = function(libName) {
     var versionStrings = [];
-    findContract().getVersions(libName).forEach(function(rawVersion) {
-      var version = versionUtils.calc(rawVersion);
-      versionStrings.push(version.string);
+    findContract(function(err, contract) {
+      if (err) return callback(err);
+      contract.getVersions(libName, function(error, rawVersions) {
+        if (error) return callback(error);
+        rawVersions.forEach(function(rawVersion) {
+          var version = versionUtils.calc(rawVersion);
+          versionStrings.push(version.string);
+        });
+        callback(null, versionStrings);
+      });
     });
-    return versionStrings;
   };
 
   this.downloadData = function() {
-    migration.downloadData(findContract(), web3);
+    findContract(function(err, contract) {
+      if (err) return callback(err);
+      migration.downloadData(contract, web3);
+    });
   };
 
   this.deploy = function(onTestrpc) {
@@ -178,53 +216,82 @@ function LiveLibs(web3, verbose) {
 
   function liveLibsABI() {
     // NOTE: before updating this file, download the latest registry from networks
-    return JSON.parse(fileUtils.readSync(resolve('./abis/LiveLibs.json')));
+    return JSON.parse(fileUtils.readSync(resolvePath('./abis/LiveLibs.json')));
   }
 
-  function findContract() {
+  function findContract(callback) {
     var contract = web3.eth.contract(liveLibsABI());
-    return detectLiveLibsInstance(contract) || findTestRPCInstance(contract);
-  }
 
-  function detectLiveLibsInstance(contract) {
-    var instance;
-    var config = parseNetworkConfig();
-    Object.keys(config).forEach(function(networkName) {
-      if (instance) return;
+    if (testing)
+      return findTestRPCInstance(contract, callback);
 
-      var address = config[networkName];
-      if (liveAddress(address)) {
-        instance = contract.at(address);
-        instance.env = networkName;
+    detectLiveLibsInstance(contract, function(err, instance) {
+      if (err) return callback(err);
+      if (instance) {
+        callback(null, instance);
+      } else {
+        callback(Error('No Live Libs instance found'));
       }
     });
-    return instance;
   }
 
-  function findTestRPCInstance(contract) {
+  function detectLiveLibsInstance(contract, callback) {
+    var config = parseNetworkConfig();
+    var promises = [];
+    Object.keys(config).forEach(function(networkName) {
+      var address = config[networkName];
+      promises.push(new Promise(function(resolve, reject) {
+        liveAddress(address, function(err, isLive) {
+          if (err) return reject(err);
+          var instance;
+          if (isLive) {
+            instance = contract.at(address);
+            instance.env = networkName;
+          }
+          resolve(instance);
+        });
+      }));
+    });
+    return Promise.all(promises).then(function(possibilities) {
+      var instance = possibilities.find(function(instance) {
+        return instance;
+      });
+      callback(null, instance);
+    });
+  }
+
+  // TODO: Can this be extracted to the test suite?
+  function findTestRPCInstance(contract, callback) {
     var address;
 
     if (fileUtils.testRpcAddressExists())
       address = fileUtils.getTestRpcAddress();
     if (!address)
-      return logger.error('Contract address not found for testrpc!');
-    if (!liveAddress(address))
-      return logger.error('Contract not found for testrpc!');
+      return callback(Error('Contract address not found for testrpc!'));
 
-    var instance = contract.at(address);
-    instance.env = 'testrpc';
-    return instance;
+    liveAddress(address, function(err, isLive) {
+      if (err) return callback(err);
+      if (isLive) {
+        var instance = contract.at(address);
+        instance.env = 'testrpc';
+        callback(null, instance);
+      } else {
+        callback(Error('Contract not found for testrpc!'));
+      }
+    });
   }
 
   function parseNetworkConfig() {
-    var jsonString = fileUtils.readSync(resolve('./networks.json'));
+    var jsonString = fileUtils.readSync(resolvePath('./networks.json'));
     return JSON.parse(jsonString);
   }
 
-  function liveAddress(address) {
-    var contractCode = web3.eth.getCode(address);
-                        //geth                  //testrpc
-    return contractCode != '0x' && contractCode != '0x0';
+  function liveAddress(address, callback) {
+    web3.eth.getCode(address, function(err, contractCode) {
+                                  //geth                  //testrpc
+      var isLive = contractCode != '0x' && contractCode != '0x0';
+      callback(err, isLive);
+    });
   }
 
   function txHandler(txHash, successMessage) {
@@ -255,7 +322,6 @@ function LiveLibs(web3, verbose) {
   }
 
   function filterEventsBy(libName, callback) {
-    var contract = findContract();
 
     var searchString = web3.toHex(libName);
 
@@ -265,18 +331,21 @@ function LiveLibs(web3, verbose) {
       searchString += "0";
     }
 
-    var filter = web3.eth.filter({
-      address: contract.address,
-      fromBlock: 0,
-      topics: [null, searchString]
-    });
+    findContract(function(err, contract) {
+      if (err) return callback(err);
 
+      var filter = web3.eth.filter({
+        address: contract.address,
+        fromBlock: 0,
+        topics: [null, searchString]
+      });
 
-    filter.get(function(error, results) {
-      if (error) return callback(error);
-      var abi = liveLibsABI();
-      var decodedResults = results.map(function(log) { return decode(log, abi) });
-      callback(null, decodedResults);
+      filter.get(function(error, results) {
+        if (error) return callback(error);
+        var abi = liveLibsABI();
+        var decodedResults = results.map(function(log) { return decode(log, abi) });
+        callback(null, decodedResults);
+      });
     });
   }
 
@@ -296,7 +365,7 @@ function LiveLibs(web3, verbose) {
     return decoder.decode(log);
   }
 
-  function resolve(relativePath) {
+  function resolvePath(relativePath) {
     return path.resolve(path.join(__dirname, relativePath));
   }
 }

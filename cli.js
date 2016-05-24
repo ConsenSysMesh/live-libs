@@ -10,7 +10,7 @@ var rpcURL = argv.rpcurl || 'http://0.0.0.0:8545';
 web3.setProvider(new web3.providers.HttpProvider(rpcURL));
 
 var LiveLibs = require('./index');
-var liveLibs = new LiveLibs(web3, true);
+var liveLibs = new LiveLibs(web3, {verbose:true});
 
 var cmd = argv._[0];
 var libName = argv._[1];
@@ -95,7 +95,10 @@ if (cmd == "contribute") {
 }
 
 if (cmd == "env") {
-  console.log(liveLibs.env);
+  liveLibs.env(function(err, env) {
+    if (err) throw(err);
+    console.log(env);
+  });
 }
 
 if (cmd == "download") {
@@ -104,14 +107,16 @@ if (cmd == "download") {
 
 if (cmd == "deploy") {
   web3.eth.defaultAccount = argv.account || web3.eth.coinbase;
-  var onTestrpc = liveLibs.env == "testrpc";
-  if (onTestrpc) {
-    liveLibs.deploy(onTestrpc).catch(function(err) {
-      console.log(err);
-    });
-  } else {
-    console.log('Deploy not available for '+liveLibs.env);
-  }
+  liveLibs.env(function(err, env) {
+    var onTestrpc = env == "testrpc";
+    if (onTestrpc) {
+      liveLibs.deploy(onTestrpc).catch(function(err) {
+        console.log(err);
+      });
+    } else {
+      console.log('Deploy not available for '+env);
+    }
+  });
 }
 
 // TODO: Handle case where cmd matches nothing
