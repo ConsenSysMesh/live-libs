@@ -1,13 +1,15 @@
 #!/usr/bin/env node
 
 var argv = require('yargs').option('address', {type: 'string'}).argv;
-var versionUtils = require('./lib/version-utils');
 
 var Web3 = require('web3');
 var web3 = new Web3();
 
 var rpcURL = argv.rpcurl || 'http://0.0.0.0:8545';
 web3.setProvider(new web3.providers.HttpProvider(rpcURL));
+
+var migration = require('./lib/migration');
+var versionUtils = require('./lib/version-utils');
 
 var LiveLibs = require('./index');
 var liveLibs = new LiveLibs(web3, {verbose:true});
@@ -101,16 +103,22 @@ if (cmd == "env") {
   });
 }
 
+
 if (cmd == "download") {
-  liveLibs.downloadData();
+  liveLibs.findContract(function(err, contract) {
+    if (err) return console.error(err);
+    migration.downloadData(contract, web3);
+  });
 }
 
 if (cmd == "deploy") {
   web3.eth.defaultAccount = argv.account || web3.eth.coinbase;
   liveLibs.env(function(err, env) {
-    var onTestrpc = env == "testrpc";
+    // We should have failed to find an instance
+    var onTestrpc = !!err;
     if (onTestrpc) {
-      liveLibs.deploy(onTestrpc).catch(function(err) {
+      liveLibs.setTesting();
+      migration.deploy(liveLibs, web3, true).catch(function(err) {
         console.log(err);
       });
     } else {

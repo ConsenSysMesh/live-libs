@@ -7,13 +7,15 @@ web3.setProvider(TestRPC.provider());
 var LiveLibs = require('../index.js');
 var liveLibs = new LiveLibs(web3, {testing:true});
 
-var assert = require("chai").assert;
+var migration = require('../lib/migration');
 
-describe('Registry', function() {
+var assert = require('chai').assert;
+
+describe('Live Libs', function() {
 
   before(function(done) {
     setAccount().then(function() {
-      return liveLibs.deploy(true); // TODO: maybe silence these logs?
+      return migration.deploy(liveLibs, web3); // TODO: maybe silence these logs?
     }).then(done).catch(done);
   });
 

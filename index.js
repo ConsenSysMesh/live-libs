@@ -3,7 +3,6 @@
 var path = require('path');
 
 var generateAbstractLib = require('./lib/generate');
-var migration = require('./lib/migration');
 var versionUtils = require('./lib/version-utils');
 var fileUtils = require('./lib/file-utils');
 var ethUtils = require('./lib/eth-utils');
@@ -203,22 +202,6 @@ function LiveLibs(web3, options) {
     });
   };
 
-  this.downloadData = function() {
-    findContract(function(err, contract) {
-      if (err) return callback(err);
-      migration.downloadData(contract, web3);
-    });
-  };
-
-  this.deploy = function(onTestrpc) {
-    return migration.deploy(this.register, web3, onTestrpc);
-  };
-
-  function liveLibsABI() {
-    // NOTE: before updating this file, download the latest registry from networks
-    return JSON.parse(fileUtils.readSync(resolvePath('./abis/LiveLibs.json')));
-  }
-
   function findContract(callback) {
     var contract = web3.eth.contract(liveLibsABI());
 
@@ -233,6 +216,20 @@ function LiveLibs(web3, options) {
         callback(Error('No Live Libs instance found'));
       }
     });
+  }
+  this.findContract = findContract; // exposing it for the CLI
+
+  this.setTesting = function() {
+    testing = true;
+  };
+
+  this.isTesting = function() {
+    return testing;
+  };
+
+  function liveLibsABI() {
+    // NOTE: before updating this file, download the latest registry from networks
+    return JSON.parse(fileUtils.readSync(resolvePath('./abis/LiveLibs.json')));
   }
 
   function detectLiveLibsInstance(contract, callback) {
