@@ -39,13 +39,14 @@ Via Javascript:
     var liveLibs = new LiveLibs(web3);
     var libName = "Foo";
     var version = "3.5.8"; // optional
-    var libInfo = liveLibs.get(libName, version);
-    console.log(libInfo.version);
-    console.log(libInfo.address);
-    console.log(libInfo.abi);
-    console.log(libInfo.abstractSource());
-    console.log(libInfo.docURL);
-    console.log(libInfo.sourceURL);
+    liveLibs.get(libName, version).then(function(libInfo) {
+      console.log(libInfo.version);
+      console.log(libInfo.address);
+      console.log(libInfo.abi);
+      console.log(libInfo.abstractSource());
+      console.log(libInfo.docURL);
+      console.log(libInfo.sourceURL);
+    });
 
 ## Getting a library's event log
 
