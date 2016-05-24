@@ -7,7 +7,11 @@ testHelper.deployAndRun(function(liveLibs) {
     var fakeAbi = '[]';
 
     it('gracefully handles a get miss', function() {
-      assert.throws(function() { liveLibs.get('baz'); });
+      return liveLibs.get('baz').then(function() {
+        assert.fail('Should have rejected missing libName');
+      }).catch(function() {
+        // expected to get here
+      });
     });
 
     it('gets what it sets', function() {
@@ -15,13 +19,14 @@ testHelper.deployAndRun(function(liveLibs) {
       var fakeDocs = 'http://example.com/docs';
       return liveLibs.register(libName, '0.1.2', fakeAddress, fakeAbi, fakeDocs, '', 0).then(function() {
 
-        var libInfo = liveLibs.get(libName);
-        assert.equal(libInfo.address, fakeAddress);
-        assert.equal(libInfo.version, '0.1.2');
-        assert.equal(libInfo.abi, fakeAbi);
-        assert.equal(libInfo.docURL, fakeDocs);
-        assert.equal(libInfo.thresholdWei, 0);
-        assert.equal(libInfo.totalValue, 0);
+        return liveLibs.get(libName).then(function(libInfo) {
+          assert.equal(libInfo.address, fakeAddress);
+          assert.equal(libInfo.version, '0.1.2');
+          assert.equal(libInfo.abi, fakeAbi);
+          assert.equal(libInfo.docURL, fakeDocs);
+          assert.equal(libInfo.thresholdWei, 0);
+          assert.equal(libInfo.totalValue, 0);
+        });
 
       });
     });
@@ -30,7 +35,11 @@ testHelper.deployAndRun(function(liveLibs) {
       var libName = 'abc';
       return liveLibs.register(libName, '0.1.2', fakeAddress, fakeAbi, '', '', 1000).then(function() {
 
-        assert.throws(function() { liveLibs.get(libName); });
+        return liveLibs.get(libName).then(function() {
+          assert.fail('Should have rejected locked libName');
+        }).catch(function() {
+          // expected to get here
+        });
 
       });
     });
@@ -44,11 +53,11 @@ testHelper.deployAndRun(function(liveLibs) {
       }).then(function() {
         return liveLibs.contributeTo(libName, version, 750);
       }).then(function() {
-        var libInfo = liveLibs.get(libName);
-        assert.isDefined(libInfo);
-        assert.equal(libInfo.address, fakeAddress);
-        assert.equal(libInfo.totalValue, 1000);
-
+        return liveLibs.get(libName).then(function(libInfo) {
+          assert.isDefined(libInfo);
+          assert.equal(libInfo.address, fakeAddress);
+          assert.equal(libInfo.totalValue, 1000);
+        });
       });
     });
 
@@ -59,7 +68,6 @@ testHelper.deployAndRun(function(liveLibs) {
 
       return liveLibs.register(longName, '0.1.2', fakeAddress, fakeAbi).catch(function(error) {
         assert.isDefined(error, 'should have detected name was too long');
-        assert.throws(function() { liveLibs.get(truncName); });
         assert.notInclude(liveLibs.allNames(), truncName);
       });
     });
@@ -70,11 +78,15 @@ testHelper.deployAndRun(function(liveLibs) {
         return liveLibs.register(libName, '0.1.2', fakeAddress, fakeAbi);
       }).then(function() {
 
-        var libInfo = liveLibs.get(libName, '0.1.2');
-        assert.equal(libInfo.version, '0.1.2');
+        return liveLibs.get(libName, '0.1.2').then(function(libInfo) {
+          assert.equal(libInfo.version, '0.1.2');
+        });
 
-        libInfo = liveLibs.get(libName, '0.1.3');
-        assert.equal(libInfo.version, '0.1.3');
+      }).then(function() {
+
+        return liveLibs.get(libName, '0.1.3').then(function(libInfo) {
+          assert.equal(libInfo.version, '0.1.3');
+        });
 
       });
     });

@@ -17,35 +17,32 @@ var libName = argv._[1];
 var version = argv.v || argv.version;
 
 if (cmd == "get") {
-  try {
-    var libInfo = liveLibs.get(libName, version);
-  } catch (err) {
-    console.error(err.toString());
-    return;
-  }
-
-  console.log('Version:');
-  console.log(libInfo.version);
-  console.log('\nAddress:');
-  console.log(libInfo.address);
-  console.log('\nABI:');
-  console.log(libInfo.abi);
-  console.log('\nAbstract source:');
-  console.log(libInfo.abstractSource());
-  if (libInfo.docURL) {
-    console.log('\nDocumentation URL:');
-    console.log(libInfo.docURL);
-  }
-  if (libInfo.sourceURL) {
-    console.log('\nSource URL:');
-    console.log(libInfo.sourceURL);
-  }
-  if (libInfo.thresholdWei > 0) {
-    console.log('\nUnlocked at (wei):');
-    console.log(libInfo.thresholdWei);
-  }
-  console.log('\nContributions (wei):');
-  console.log(libInfo.totalValue);
+  liveLibs.get(libName, version).then(function(libInfo) {
+    console.log('Version:');
+    console.log(libInfo.version);
+    console.log('\nAddress:');
+    console.log(libInfo.address);
+    console.log('\nABI:');
+    console.log(libInfo.abi);
+    console.log('\nAbstract source:');
+    console.log(libInfo.abstractSource());
+    if (libInfo.docURL) {
+      console.log('\nDocumentation URL:');
+      console.log(libInfo.docURL);
+    }
+    if (libInfo.sourceURL) {
+      console.log('\nSource URL:');
+      console.log(libInfo.sourceURL);
+    }
+    if (libInfo.thresholdWei > 0) {
+      console.log('\nUnlocked at (wei):');
+      console.log(libInfo.thresholdWei);
+    }
+    console.log('\nContributions (wei):');
+    console.log(libInfo.totalValue);
+  }).catch(function(err) {
+    console.error(err);
+  });
 }
 
 function toDateTimeString(time){

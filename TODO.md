@@ -1,4 +1,3 @@
-* Switch all web3 calls to async (investigate pudding)
 * fork browser-solidity webapp to use LiveLibs
 * Try to send signed/raw transactions (via @tcoulter: "You can use the provider-engine to do translations from `sendTransaction` to `sendRawTransaction` before they hit the server.")
 * Script for updating newly-deployed live-lib contract with existing network data (useful for when the live-libs contract is updated)

@@ -19,35 +19,42 @@ function LiveLibs(web3, verbose) {
   }
 
   this.get = function(libName, version) {
-    var v;
-    if (version) {
-      v = versionUtils.parse(version);
-    } else {
-      v = versionUtils.latest(libName, findContract());
-    }
-
-    if (!v) throw(Error('No versions of '+libName+' found'));
-
-    var rawLibData = findContract().get(libName, v.num);
-
-    if (ethUtils.blankAddress(rawLibData[0])) {
-      if (version && versionUtils.exists(libName, version, findContract())) {
-        // If they went to the trouble of specifying a version, let's see if it's locked
-        throw(Error(libName+' is locked'));
+    return new Promise(function(resolve, reject) {
+      if (version) {
+        resolve(versionUtils.parse(version));
+      } else {
+        versionUtils.latest(libName, findContract(), function(err, v) {
+          if (err) return reject(err);
+          resolve(v);
+        });
       }
-      throw(Error(libName+' '+version+' is not registered'));
-    }
+    }).then(function(v) {
+      return new Promise(function(resolve, reject) {
+        if (!v) return reject('No versions of '+libName+' found');
+        findContract().get(libName, v.num, function(err, rawLibData) {
+          if (err) return reject(err);
 
-    return {
-      version: v.string,
-      address: rawLibData[0],
-      abi: rawLibData[1],
-      docURL: rawLibData[2],
-      sourceURL: rawLibData[3],
-      thresholdWei: rawLibData[4].toString(),
-      totalValue: rawLibData[5].toString(),
-      abstractSource: function() { return generateAbstractLib(libName, rawLibData[1]); }
-    };
+          if (ethUtils.blankAddress(rawLibData[0])) {
+            if (version && versionUtils.exists(libName, version, findContract())) {
+              // If they went to the trouble of specifying a version, let's see if it's locked
+              return reject(libName+' is locked');
+            }
+            return reject(libName+' '+version+' is not registered');
+          }
+
+          resolve({
+            version: v.string,
+            address: rawLibData[0],
+            abi: rawLibData[1],
+            docURL: rawLibData[2],
+            sourceURL: rawLibData[3],
+            thresholdWei: rawLibData[4].toString(),
+            totalValue: rawLibData[5].toString(),
+            abstractSource: function() { return generateAbstractLib(libName, rawLibData[1]); }
+          });
+        });
+      });
+    });
   };
 
   this.log = function(libName) {
