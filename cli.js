@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 
+var fs = require('fs');
 var argv = require('yargs').option('address', {type: 'string'}).argv;
 
 var Web3 = require('web3');
@@ -10,11 +11,11 @@ web3.setProvider(new web3.providers.HttpProvider(rpcURL));
 
 var migration = require('./lib/migration');
 var versionUtils = require('./lib/version-utils');
-var config = require('./lib/file-utils').config({verbose:true});
+var fileUtils = require('./lib/file-utils');
 
 var LiveLibs = require('./index');
 
-var liveLibs = new LiveLibs(web3, config);
+var liveLibs = new LiveLibs(web3, fileUtils.config({verbose:true}));
 
 var cmd = argv._[0];
 var libName = argv._[1];
@@ -129,6 +130,14 @@ if (cmd == "deploy") {
       console.log('Deploy not available for '+env);
     }
   });
+}
+
+if (cmd == "build-browser") {
+  var inlineConfig = JSON.stringify(fileUtils.config());
+  var source = 'var LiveLibs = require("../index.js");\n'+
+  'LiveLibs.config = '+inlineConfig+'\n'+
+  'module.exports = LiveLibs;\n';
+  fs.writeFileSync('./browser/index.js', source);
 }
 
 // TODO: Handle case where cmd matches nothing

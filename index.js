@@ -5,6 +5,8 @@ var versionUtils = require('./lib/version-utils');
 var ethUtils = require('./lib/eth-utils');
 
 function LiveLibs(web3, config) {
+  config = buildConfig(config);
+
   var testing = config.testing;
   var logger = getLogger(config.verbose);
 
@@ -346,6 +348,16 @@ function LiveLibs(web3, config) {
     });
 
     return decoder.decode(log);
+  }
+
+  function buildConfig(config) {
+    if (!config) config = {};
+    if (!LiveLibs.config) return config; // set in ./browser
+    for (var attrname in LiveLibs.config) {
+      if (config[attrname] == undefined)
+        config[attrname] = LiveLibs.config[attrname];
+    }
+    return config;
   }
 }
 
