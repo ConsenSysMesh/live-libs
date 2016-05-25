@@ -69,6 +69,7 @@ function LiveLibs(web3, config) {
       });
     }).then(function(rawEvents) {
       var events = [];
+      var promises = [];
       rawEvents.forEach(function(raw) {
         delete raw.args.libName; // since we're already filtering by name
 
@@ -77,11 +78,19 @@ function LiveLibs(web3, config) {
           delete raw.args.versionNum;
         }
 
-        var block = web3.eth.getBlock(raw.blockNumber);
+        var event = {type: raw.event, args: raw.args};
+        events.push(event);
 
-        events.push({time: block.timestamp, type: raw.event, args: raw.args});
+        var promise = new Promise(function(resolve, reject) {
+          web3.eth.getBlock(raw.blockNumber, function(err, block) {
+            if (err) return reject(err);
+            event.time = block.timestamp;
+            resolve();
+          });
+        });
+        promises.push(promise);
       });
-      return Promise.resolve(events);
+      return Promise.all(promises).then(function() { return events; });
     });
   };
 
