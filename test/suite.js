@@ -4,8 +4,9 @@ var web3 = new Web3();
 var TestRPC = require('ethereumjs-testrpc');
 web3.setProvider(TestRPC.provider());
 
+var fileUtils = require('../lib/file-utils');
 var LiveLibs = require('../index.js');
-var liveLibs = new LiveLibs(web3, {testing:true});
+var liveLibs; // we need to define this after deployment
 
 var migration = require('../lib/migration');
 
@@ -15,7 +16,9 @@ describe('Live Libs', function() {
 
   before(function(done) {
     setAccount().then(function() {
-      return migration.deploy(liveLibs, web3); // TODO: maybe silence these logs?
+      return migration.deploy(web3, true); // TODO: maybe silence these logs?
+    }).then(function() {
+      liveLibs = new LiveLibs(web3, fileUtils.config({testing:true}));
     }).then(done).catch(done);
   });
 
@@ -25,8 +28,8 @@ describe('Live Libs', function() {
   it('gracefully handles a get miss', function() {
     return liveLibs.get('baz').then(function() {
       assert.fail('Should have rejected missing libName');
-    }).catch(function() {
-      // expected to get here
+    }).catch(function(e) {
+      assert.equal(e, 'No versions of baz found');
     });
   });
 
@@ -53,8 +56,8 @@ describe('Live Libs', function() {
 
       return liveLibs.get(libName).then(function() {
         assert.fail('Should have rejected locked libName');
-      }).catch(function() {
-        // expected to get here
+      }).catch(function(e) {
+        assert.equal(e, 'abc 0.1.2 is locked');
       });
 
     });

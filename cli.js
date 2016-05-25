@@ -10,9 +10,11 @@ web3.setProvider(new web3.providers.HttpProvider(rpcURL));
 
 var migration = require('./lib/migration');
 var versionUtils = require('./lib/version-utils');
+var config = require('./lib/file-utils').config({verbose:true});
 
 var LiveLibs = require('./index');
-var liveLibs = new LiveLibs(web3, {verbose:true});
+
+var liveLibs = new LiveLibs(web3, config);
 
 var cmd = argv._[0];
 var libName = argv._[1];
@@ -118,7 +120,9 @@ if (cmd == "deploy") {
     var onTestrpc = !!err;
     if (onTestrpc) {
       liveLibs.setTesting();
-      migration.deploy(liveLibs, web3, true).catch(function(err) {
+      migration.deploy(web3, true).then(function() {
+        return migration.registerAll(web3, liveLibs);
+      }).catch(function(err) {
         console.log(err);
       });
     } else {

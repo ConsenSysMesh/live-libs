@@ -1,19 +1,12 @@
 "use strict";
 
-var path = require('path');
-
 var generateAbstractLib = require('./lib/generate');
 var versionUtils = require('./lib/version-utils');
-var fileUtils = require('./lib/file-utils');
 var ethUtils = require('./lib/eth-utils');
 
-function LiveLibs(web3, options) {
-  if (options) {
-    var verbose = options.verbose;
-    var testing = options.testing;
-  }
-
-  var logger = getLogger(verbose);
+function LiveLibs(web3, config) {
+  var testing = config.testing;
+  var logger = getLogger(config.verbose);
 
   this.env = function(callback) {
     findContract(function(err, contract) {
@@ -35,35 +28,31 @@ function LiveLibs(web3, options) {
           if (error) return reject(error);
           versionUtils.latest(libName, contract, function(err, v) {
             if (err) return reject(err);
+            if (!v) return reject('No versions of '+libName+' found');
             resolve(v);
           });
         });
       }
     }).then(function(v) {
       return new Promise(function(resolve, reject) {
-        if (!v) return reject('No versions of '+libName+' found');
         findContract(function(error, contract) {
           if (error) return reject(error);
           contract.get(libName, v.num, function(err, rawLibData) {
             if (err) return reject(err);
             if (ethUtils.blankAddress(rawLibData[0])) {
-              if (version && versionUtils.exists(libName, version, contract)) {
-                // If they went to the trouble of specifying a version, let's see if it's locked
-                return reject(libName+' is locked');
-              }
-              return reject(libName+' '+version+' is not registered');
+              reject(libName+' '+v.string+' is locked');
+            } else {
+              resolve({
+                version: v.string,
+                address: rawLibData[0],
+                abi: rawLibData[1],
+                docURL: rawLibData[2],
+                sourceURL: rawLibData[3],
+                thresholdWei: rawLibData[4].toString(),
+                totalValue: rawLibData[5].toString(),
+                abstractSource: function() { return generateAbstractLib(libName, rawLibData[1]); }
+              });
             }
-
-            resolve({
-              version: v.string,
-              address: rawLibData[0],
-              abi: rawLibData[1],
-              docURL: rawLibData[2],
-              sourceURL: rawLibData[3],
-              thresholdWei: rawLibData[4].toString(),
-              totalValue: rawLibData[5].toString(),
-              abstractSource: function() { return generateAbstractLib(libName, rawLibData[1]); }
-            });
           });
         });
       });
@@ -147,7 +136,7 @@ function LiveLibs(web3, options) {
             if (err) return reject(err);
             if (!isLive) return reject('LibFund instance not found!');
 
-            var abi = JSON.parse(fileUtils.readSync(resolvePath('./abis/LibFund.json')));
+            var abi = JSON.parse(config.libFundABIString);
             var libFundContract = web3.eth.contract(abi);
             var instance = libFundContract.at(libFundAddress);
             var v = versionUtils.parse(version);
@@ -229,7 +218,7 @@ function LiveLibs(web3, options) {
 
   function liveLibsABI() {
     // NOTE: before updating this file, download the latest registry from networks
-    return JSON.parse(fileUtils.readSync(resolvePath('./abis/LiveLibs.json')));
+    return JSON.parse(config.liveLibsABIString);
   }
 
   function detectLiveLibsInstance(contract, callback) {
@@ -259,10 +248,8 @@ function LiveLibs(web3, options) {
 
   // TODO: Can this be extracted to the test suite?
   function findTestRPCInstance(contract, callback) {
-    var address;
+    var address = config.testRpcAddress;
 
-    if (fileUtils.testRpcAddressExists())
-      address = fileUtils.getTestRpcAddress();
     if (!address)
       return callback(Error('Contract address not found for testrpc!'));
 
@@ -279,8 +266,7 @@ function LiveLibs(web3, options) {
   }
 
   function parseNetworkConfig() {
-    var jsonString = fileUtils.readSync(resolvePath('./networks.json'));
-    return JSON.parse(jsonString);
+    return JSON.parse(config.networksJSONString);
   }
 
   function liveAddress(address, callback) {
@@ -360,10 +346,6 @@ function LiveLibs(web3, options) {
     });
 
     return decoder.decode(log);
-  }
-
-  function resolvePath(relativePath) {
-    return path.resolve(path.join(__dirname, relativePath));
   }
 }
 
