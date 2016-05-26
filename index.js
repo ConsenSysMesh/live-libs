@@ -83,7 +83,7 @@ function LiveLibs(web3, config) {
           resolve(libInfo);
         });
       });
-    });;
+    });
   };
 
   this.log = function(libName) {
@@ -305,6 +305,8 @@ function LiveLibs(web3, config) {
         return instance;
       });
       callback(null, instance);
+    }).catch(function(err) {
+      callback(err);
     });
   }
 
@@ -332,9 +334,10 @@ function LiveLibs(web3, config) {
 
   function liveAddress(address, callback) {
     web3.eth.getCode(address, function(err, contractCode) {
+      if (err) return callback(err);
                                   //geth                  //testrpc
       var isLive = contractCode != '0x' && contractCode != '0x0';
-      callback(err, isLive);
+      callback(null, isLive);
     });
   }
 
