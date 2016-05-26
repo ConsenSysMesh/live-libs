@@ -32,14 +32,14 @@ if (cmd == "get") {
     console.log(libInfo.abi);
     console.log('\nAbstract source:');
     console.log(libInfo.abstractSource());
-    if (libInfo.docURL) {
-      console.log('\nDocumentation URL:');
-      console.log(libInfo.docURL);
-    }
-    if (libInfo.sourceURL) {
-      console.log('\nSource URL:');
-      console.log(libInfo.sourceURL);
-    }
+
+    var resourceKeys = Object.keys(libInfo.resources);
+    if (resourceKeys.length > 0)
+      console.log('\nResources:');
+    resourceKeys.forEach(function(key) {
+      console.log(key+': '+libInfo.resources[key]);
+    });
+
     if (libInfo.thresholdWei > 0) {
       console.log('\nUnlocked at (wei):');
       console.log(libInfo.thresholdWei);
