@@ -55,18 +55,7 @@ if (cmd == "log") {
   liveLibs.log(libName).then(function(logs) {
     console.log('Event log for '+libName+'...');
     logs.forEach(function(log) {
-      var message = cliUtils.toDateTimeString(log.time)+' '+log.type+'! ';
-      if (log.type == 'NewLib') {
-        message += 'Registered by owner: '+log.args.owner;
-      } else if (log.type == 'NewVersion') {
-        message += log.args.version;
-        if (log.args.thresholdWei > 0) {
-          message += ', threshold: '+log.args.thresholdWei.toString();
-        }
-      } else {
-        message += ' not yet implemented.'
-      }
-      console.log(message);
+      console.log(cliUtils.eventMessage(log));
     });
   }).catch(function(err) {
     console.error(err);

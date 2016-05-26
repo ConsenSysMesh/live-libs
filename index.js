@@ -97,10 +97,12 @@ function LiveLibs(web3, config) {
       var promises = [];
       rawEvents.forEach(function(raw) {
         delete raw.args.libName; // since we're already filtering by name
-
         if (raw.args.versionNum) {
           raw.args.version = versionUtils.calc(raw.args.versionNum).string;
           delete raw.args.versionNum;
+        }
+        if (raw.args.key) {
+          raw.args.key = ethUtils.toAscii(web3, raw.args.key);
         }
 
         var event = {type: raw.event, args: raw.args};
