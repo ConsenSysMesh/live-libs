@@ -16,7 +16,7 @@ function LiveLibs(web3, config) {
       if (contract) {
         callback(null, contract.env);
       } else {
-        callback(null, 'testrpc');
+        callback(Error('Unable to detect environment!'));
       }
     });
   }
@@ -45,20 +45,45 @@ function LiveLibs(web3, config) {
               reject(libName+' '+v.string+' is locked');
             } else {
               resolve({
-                version: v.string,
+                v: v,
                 address: rawLibData[0],
                 abi: rawLibData[1],
-                docURL: rawLibData[2],
-                sourceURL: rawLibData[3],
-                thresholdWei: rawLibData[4].toString(),
-                totalValue: rawLibData[5].toString(),
+                rawResourceKeys: rawLibData[2],
+                thresholdWei: rawLibData[3].toString(),
+                totalValue: rawLibData[4].toString(),
                 abstractSource: function() { return generateAbstractLib(libName, rawLibData[1]); }
               });
             }
           });
         });
       });
-    });
+    }).then(function(libInfo) {
+      return new Promise(function(resolve, reject) {
+        var promises = [];
+        var resources = {};
+        libInfo.rawResourceKeys.forEach(function(rawKey) {
+          var promise = new Promise(function(resolve, reject) {
+            var key = ethUtils.toAscii(web3, rawKey);
+            findContract(function(error, contract) {
+              if (error) return reject(error);
+              contract.getResource(libName, libInfo.v.num, key, function(err, uri) {
+                if (err) return reject(err);
+                resources[key] = uri;
+                resolve();
+              });
+            });
+          });
+          promises.push(promise);
+        });
+        return Promise.all(promises).then(function() {
+          libInfo.version = libInfo.v.string;
+          delete libInfo.v;
+          delete libInfo.rawResourceKeys;
+          libInfo.resources = resources;
+          resolve(libInfo);
+        });
+      });
+    });;
   };
 
   this.log = function(libName) {
@@ -94,17 +119,27 @@ function LiveLibs(web3, config) {
     });
   };
 
-  this.register = function(libName, version, address, abiString, docUrl, sourceUrl, thresholdWei) {
+  this.register = function(libName, version, address, abiString, resources, thresholdWei) {
+    var parsedVersion;
+    if (version) {
+      parsedVersion = versionUtils.parse(version);
+    }
+
     return new Promise(function(resolve, reject) {
       if (!libName || libName.length > 32)
         return reject('Library names must be between 1-32 characters.');
 
-      var parsedVersion;
-      if (version) {
-        parsedVersion = versionUtils.parse(version);
+      if (resources) {
+        Object.keys(resources).forEach(function(key) {
+          if (!key || key.length > 32)
+            return reject('Resource keys must be between 1-32 characters.');
+        });
       } else {
-        return reject('No version specified for '+libName);
+        resources = {};
       }
+
+      if (!parsedVersion)
+        return reject('No version specified for '+libName);
 
       findContract(function(error, contract) {
         if (error) return reject(error);
@@ -113,17 +148,9 @@ function LiveLibs(web3, config) {
           parsedVersion.num,
           address,
           abiString,
-          (docUrl || ''),
-          (sourceUrl || ''),
           (thresholdWei || 0),
           {value: 0, gas: 2000000}, // TODO: need to estimate this
-          function(err, txHash) {
-            if (err) {
-              reject(err);
-            } else {
-              resolve(txHash);
-            }
-          }
+          promiseHandler(resolve, reject)
         );
       });
     }).then(function(txHash) {
@@ -131,6 +158,28 @@ function LiveLibs(web3, config) {
       if (thresholdWei > 0)
         message += ' Locked until '+thresholdWei+' wei contributed.';
       return txHandler(txHash, message);
+    }).then(function() {
+      var promises = []
+      Object.keys(resources).forEach(function(key) {
+        var promise = new Promise(function(resolve, reject) {
+          findContract(function(err, contract) {
+            if (err) return reject(err);
+            contract.registerResource(
+              libName,
+              parsedVersion.num,
+              key,
+              resources[key],
+              {value: 0, gas: 2000000}, // TODO: need to estimate this
+              promiseHandler(resolve, reject)
+            );
+          });
+        }).then(function(txHash) {
+          var message = 'Registered resource for '+libName+' '+version+'!';
+          return txHandler(txHash, message);
+        });
+        promises.push(promise);
+      });
+      return Promise.all(promises);
     });
   };
 
@@ -205,7 +254,7 @@ function LiveLibs(web3, config) {
   function findContract(callback) {
     var contract = web3.eth.contract(liveLibsABI());
 
-    if (testing)
+    if (testing) // short-curcuit if we know we're testing
       return findTestRPCInstance(contract, callback);
 
     detectLiveLibsInstance(contract, function(err, instance) {
@@ -213,7 +262,15 @@ function LiveLibs(web3, config) {
       if (instance) {
         callback(null, instance);
       } else {
-        callback(Error('No Live Libs instance found'));
+        findTestRPCInstance(contract, function(err, instance) {
+          if (err) {
+            callback(err);
+          } else if (instance) {
+            callback(null, instance);
+          } else {
+            callback(Error('No Live Libs instance found'));
+          }
+        });
       }
     });
   }
@@ -257,7 +314,6 @@ function LiveLibs(web3, config) {
     });
   }
 
-  // TODO: Can this be extracted to the test suite?
   function findTestRPCInstance(contract, callback) {
     var address = config.testRpcAddress;
 
@@ -288,6 +344,16 @@ function LiveLibs(web3, config) {
     });
   }
 
+  function promiseHandler(resolve, reject) {
+    return function(err, txHash) {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(txHash);
+      }
+    };
+  }
+
   function txHandler(txHash, successMessage) {
     return new Promise(function(resolve, reject) {
       var interval = setInterval(function() {
@@ -316,7 +382,6 @@ function LiveLibs(web3, config) {
   }
 
   function filterEventsBy(libName, callback) {
-
     var searchString = web3.toHex(libName);
 
     // TODO: Isn't there a better way to ensure the string is zero-padded?

@@ -12,6 +12,7 @@ web3.setProvider(new web3.providers.HttpProvider(rpcURL));
 var migration = require('./lib/migration');
 var versionUtils = require('./lib/version-utils');
 var fileUtils = require('./lib/file-utils');
+var cliUtils = require('./lib/cli-utils');
 
 var LiveLibs = require('./index');
 
@@ -50,22 +51,11 @@ if (cmd == "get") {
   });
 }
 
-function toDateTimeString(time){
-  function pad(n){return n<10 ? '0'+n : n;}
-  var d = new Date(time*1000);
-  return d.getUTCFullYear()+'-'
-  + pad(d.getUTCMonth()+1)+'-'
-  + pad(d.getUTCDate())+'T'
-  + pad(d.getUTCHours())+':'
-  + pad(d.getUTCMinutes())+':'
-  + pad(d.getUTCSeconds())+'Z';
-}
-
 if (cmd == "log") {
   liveLibs.log(libName).then(function(logs) {
     console.log('Event log for '+libName+'...');
     logs.forEach(function(log) {
-      var message = toDateTimeString(log.time)+' '+log.type+'! ';
+      var message = cliUtils.toDateTimeString(log.time)+' '+log.type+'! ';
       if (log.type == 'NewLib') {
         message += 'Registered by owner: '+log.args.owner;
       } else if (log.type == 'NewVersion') {
@@ -86,7 +76,8 @@ if (cmd == "log") {
 if (cmd == "register") {
   web3.eth.defaultAccount = argv.account || web3.eth.coinbase;
   console.log('Attempting to register '+libName+', please wait for mining.');
-  liveLibs.register(libName, argv.version, argv.address, argv.abi, argv.docurl, argv.sourceurl, argv.unlockat).catch(function(err) {
+  var resources = cliUtils.parseResourceURIs(argv.resourceuri);
+  liveLibs.register(libName, argv.version, argv.address, argv.abi, resources, argv.unlockat).catch(function(err) {
     console.log(err);
   });
 }
@@ -117,8 +108,10 @@ if (cmd == "download") {
 if (cmd == "deploy") {
   web3.eth.defaultAccount = argv.account || web3.eth.coinbase;
   liveLibs.env(function(err, env) {
-    // We should have failed to find an instance
-    var onTestrpc = !!err;
+    // We either failed to find an instance
+    // or we detected our instance
+    var onTestrpc = !!err || env == 'testrpc';
+
     if (onTestrpc) {
       liveLibs.setTesting();
       migration.deploy(web3, true).then(function() {

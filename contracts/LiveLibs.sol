@@ -5,12 +5,13 @@ contract LiveLibs {
         address a;
         string abi;
         address author;
-        string docURL;
-        string sourceURL;
+        bytes32[] resourceKeys;
+        mapping (bytes32 => string) resources;
     }
 
     event NewLib(bytes32 indexed libName, address owner);
     event NewVersion(bytes32 indexed libName, uint versionNum, uint thresholdWei);
+    event NewResource(bytes32 indexed libName, uint versionNum, bytes32 key, string resourceURI);
     event OwnershipChange(bytes32 indexed libName, address oldOwner, address newOwner);
 
     bytes32[] public names;
@@ -42,7 +43,7 @@ contract LiveLibs {
         libFund = lf;
     }
 
-    function register(bytes32 libName, uint versionNum, address a, string abi, string docURL, string sourceURL, uint thresholdWei) {
+    function register(bytes32 libName, uint versionNum, address a, string abi, uint thresholdWei) {
         if (ownerMap[libName] == 0) {
             ownerMap[libName] = msg.sender;
             names.push(libName);
@@ -53,26 +54,21 @@ contract LiveLibs {
 
         if (versions[libName][versionNum].a == 0) {
             versionMap[libName].push(versionNum);
-            versions[libName][versionNum] = Version({
-                a: a,
-                abi: abi,
-                author: msg.sender,
-                docURL: docURL,
-                sourceURL: sourceURL
-            });
+            Version v = versions[libName][versionNum];
+            v.a = a;
+            v.abi = abi;
+            v.author = msg.sender;
             libFund.setThreshold(libName, versionNum, thresholdWei, msg.sender);
             NewVersion(libName, versionNum, thresholdWei);
         }
     }
 
-    // TODO: implement in CLI
-    function updateDocURL(bytes32 libName, uint versionNum, string docURL) onlyLibOwner(libName) {
-        versions[libName][versionNum].docURL = docURL;
-    }
-
-    // TODO: implement in CLI
-    function updateSourceURL(bytes32 libName, uint versionNum, string sourceURL) onlyLibOwner(libName) {
-        versions[libName][versionNum].sourceURL = sourceURL;
+    function registerResource(bytes32 libName, uint versionNum, bytes32 key, string uri) {
+        Version v = versions[libName][versionNum];
+        if (!stringsEqual(v.resources[key], "")) throw; // TODO: need to test this
+        v.resourceKeys.push(key);
+        v.resources[key] = uri;
+        NewResource(libName, versionNum, key, uri);
     }
 
     // TODO: implement in CLI
@@ -81,11 +77,16 @@ contract LiveLibs {
         ownerMap[libName] = newOwner;
     }
 
-    function get(bytes32 libName, uint versionNum) constant returns (address, string, string, string, uint, uint) {
+    function get(bytes32 libName, uint versionNum) constant returns (address, string, bytes32[], uint, uint) {
         Version v = versions[libName][versionNum];
         if (v.a == 0 || libFund.isLocked(libName, versionNum)) return;
         var (_, threshold, totalValue) = libFund.funds(libName, versionNum);
-        return (v.a, v.abi, v.docURL, v.sourceURL, threshold, totalValue);
+        return (v.a, v.abi, v.resourceKeys, threshold, totalValue);
+    }
+
+    function getResource(bytes32 libName, uint versionNum, bytes32 key) constant returns (string) {
+        Version v = versions[libName][versionNum];
+        return v.resources[key];
     }
 
     function getVersions(bytes32 libName) constant returns (uint[]) {
@@ -94,6 +95,18 @@ contract LiveLibs {
 
     function allNames() constant returns (bytes32[]) {
         return names;
+    }
+
+    // Extract to library! :)
+    function stringsEqual(string storage _a, string memory _b) internal returns (bool) {
+        bytes storage a = bytes(_a);
+        bytes memory b = bytes(_b);
+        if (a.length != b.length)
+            return false;
+        for (uint i = 0; i < a.length; i ++)
+            if (a[i] != b[i])
+                return false;
+        return true;
     }
 
     function() { throw; }
