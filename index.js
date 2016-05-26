@@ -278,14 +278,6 @@ function LiveLibs(web3, config) {
   }
   this.findContract = findContract; // exposing it for the CLI
 
-  this.setTesting = function() {
-    testing = true;
-  };
-
-  this.isTesting = function() {
-    return testing;
-  };
-
   function liveLibsABI() {
     // NOTE: before updating this file, download the latest registry from networks
     return JSON.parse(config.liveLibsABIString);
@@ -317,7 +309,7 @@ function LiveLibs(web3, config) {
   }
 
   function findTestRPCInstance(contract, callback) {
-    var address = config.testRpcAddress;
+    var address = config.reload().testRpcAddress;
 
     if (!address)
       return callback(Error('Contract address not found for testrpc!'));

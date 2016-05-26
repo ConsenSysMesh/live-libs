@@ -97,12 +97,9 @@ if (cmd == "download") {
 if (cmd == "deploy") {
   web3.eth.defaultAccount = argv.account || web3.eth.coinbase;
   liveLibs.env(function(err, env) {
-    // We either failed to find an instance
-    // or we detected our instance
-    var onTestrpc = !!err || env == 'testrpc';
+    var noInstanceFound = !!err;
 
-    if (onTestrpc) {
-      liveLibs.setTesting(); // TODO: Is this really necessary?
+    if (noInstanceFound || env == 'testrpc') {
       migration.deploy(web3, true).then(function() {
         return migration.registerAll(web3, liveLibs);
       }).catch(function(err) {
