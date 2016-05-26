@@ -113,7 +113,7 @@ if (cmd == "deploy") {
     var onTestrpc = !!err || env == 'testrpc';
 
     if (onTestrpc) {
-      liveLibs.setTesting();
+      liveLibs.setTesting(); // TODO: Is this really necessary?
       migration.deploy(web3, true).then(function() {
         return migration.registerAll(web3, liveLibs);
       }).catch(function(err) {
