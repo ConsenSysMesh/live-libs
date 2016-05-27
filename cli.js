@@ -24,28 +24,7 @@ var version = argv.v || argv.version;
 
 if (cmd == "get") {
   liveLibs.get(libName, version).then(function(libInfo) {
-    console.log('Version:');
-    console.log(libInfo.version);
-    console.log('\nAddress:');
-    console.log(libInfo.address);
-    console.log('\nABI:');
-    console.log(libInfo.abi);
-    console.log('\nAbstract source:');
-    console.log(libInfo.abstractSource());
-
-    var resourceKeys = Object.keys(libInfo.resources);
-    if (resourceKeys.length > 0)
-      console.log('\nResources:');
-    resourceKeys.forEach(function(key) {
-      console.log(key+': '+libInfo.resources[key]);
-    });
-
-    if (libInfo.thresholdWei > 0) {
-      console.log('\nUnlocked at (wei):');
-      console.log(libInfo.thresholdWei);
-    }
-    console.log('\nContributions (wei):');
-    console.log(libInfo.totalValue);
+    console.log(cliUtils.libInfoMessage(libInfo));
   }).catch(function(err) {
     console.error(err);
   });

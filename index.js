@@ -311,7 +311,10 @@ function LiveLibs(web3, config) {
   }
 
   function findTestRPCInstance(contract, callback) {
-    var address = config.reload().testRpcAddress;
+    // TODO: ./browser doesn't have config.reload()
+    var address = config.testRpcAddress;
+    if (config.reload)
+      address = config.reload().testRpcAddress;
 
     if (!address)
       return callback(Error('Contract address not found for testrpc!'));
