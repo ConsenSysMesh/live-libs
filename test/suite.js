@@ -2,8 +2,6 @@ var Web3 = require('web3');
 var web3 = new Web3();
 
 var TestRPC = require('ethereumjs-testrpc');
-web3.setProvider(TestRPC.provider());
-
 var fileUtils = require('../lib/file-utils');
 var LiveLibs = require('../index.js');
 var liveLibs; // we need to define this after deployment
@@ -12,10 +10,17 @@ var migration = require('../lib/migration');
 
 var assert = require('chai').assert;
 
-describe('Live Libs', function() {
+var accountConfig = [
+  {balance: 20000000},
+  {balance: 20000000}
+];
+web3.setProvider(TestRPC.provider({accounts: accountConfig}));
 
+var accounts;
+
+describe('Live Libs', function() {
   before(function(done) {
-    setAccount().then(function() {
+    setAccounts().then(function() {
       return migration.deploy(web3, true); // TODO: maybe silence these logs?
     }).then(function() {
       liveLibs = new LiveLibs(web3, fileUtils.config({testing:true}));
@@ -105,7 +110,14 @@ describe('Live Libs', function() {
   it('unlocks funded libraries', function() {
     var libName = 'xyz';
     var version = '30.1.2';
+    var startingBalance;
+    web3.eth.defaultAccount = accounts[1];
+
     return liveLibs.register(libName, version, fakeAddress, fakeAbi, {}, 1000).then(function() {
+      return getBalanceFor(accounts[1]);
+    }).then(function(balance) {
+      startingBalance = balance;
+      web3.eth.defaultAccount = accounts[0];
       return liveLibs.contributeTo(libName, version, 250);
     }).then(function() {
       return liveLibs.contributeTo(libName, version, 750);
@@ -115,19 +127,33 @@ describe('Live Libs', function() {
         assert.equal(libInfo.address, fakeAddress);
         assert.equal(libInfo.totalValue, 1000);
       });
+    }).then(function() {
+      return getBalanceFor(accounts[1]);
+    }).then(function(balance) {
+      assert.equal(balance - startingBalance, 1000);
     });
   });
 });
 
-function setAccount() {
+function setAccounts() {
   return new Promise(function(resolve, reject) {
-    web3.eth.getCoinbase(function(err, coinbase) {
+    web3.eth.getAccounts(function(err, _accounts) {
       if (err) {
         reject(err);
       } else {
-        web3.eth.defaultAccount = coinbase;
+        accounts = _accounts;
+        web3.eth.defaultAccount = accounts[0];
         resolve();
       }
+    });
+  });
+}
+
+function getBalanceFor(account) {
+  return new Promise(function(resolve, reject) {
+    web3.eth.getBalance(account, function(err, balance) {
+      if (err) return reject(err);
+      resolve(balance);
     });
   });
 }

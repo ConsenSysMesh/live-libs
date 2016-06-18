@@ -45,7 +45,8 @@ contract LibFund {
         funds[libName][versionNum].totalValue += msg.value;
         FundsAdded(libName, versionNum, msg.sender, msg.value, funds[libName][versionNum].totalValue);
 
-        funds[libName][versionNum].author.send(msg.value);
+        if (!funds[libName][versionNum].author.send(msg.value))
+            throw;
     }
 
     function isLocked(bytes32 libName, uint versionNum) constant returns (bool) {
@@ -56,4 +57,6 @@ contract LibFund {
         Fund f = funds[libName][versionNum];
         return (f.author, f.threshold, f.totalValue);
     }
+
+    function () { throw; }
 }
