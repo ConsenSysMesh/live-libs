@@ -107,7 +107,7 @@ Library authors can receive ether for registering their libraries with live-libs
 
     $ live-libs register YourLibName --version 3.5.8 --address 0x45e2... --abi '[...]' --unlockat 10000000
 
-This will register `YourLibName 3.5.8` in live-libs, but when you look it up, it will not be available. To unlock it, people need to contribute ether, which gets immediatly redirected to the Ethereum account that registered this version.
+This will register `YourLibName 3.5.8` in live-libs, but when you look it up, it will not be available. To unlock it, people need to contribute ether, which gets immediately redirected to the Ethereum account that registered this version.
 
 If someone wants to contribute ether in order to unlock a version of a library, they can:
 
